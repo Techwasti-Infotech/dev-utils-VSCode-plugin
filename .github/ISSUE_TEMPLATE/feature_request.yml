@@ -1,0 +1,36 @@
+name: Feature Request
+description: Suggest an idea or new utility tool for DevUtils
+title: "[FEATURE]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an enhancement for DevUtils!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem or offline use case?
+      description: A clear and concise description of what the pain point is.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the utility tool or feature you'd like to see
+      description: What should this developer tool do?
+    validations:
+      required: true
+  - type: textarea
+    id: sample-input-output
+    attributes:
+      label: Sample Input & Output
+      description: If applicable, provide examples of the expected transformations.
+      placeholder: |
+        Input: ...
+        Output: ...
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Additional Context or RFC/Standard references
+      description: Any links to RFC specifications, documentation, or alternative tools.

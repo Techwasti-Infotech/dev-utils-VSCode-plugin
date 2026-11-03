@@ -1,0 +1,187 @@
+{
+  "name": "dev-utils-vscode-plugin",
+  "displayName": "DevUtils - Developer Utilities",
+  "description": "All-in-one offline developer toolbox: Encoders, Formatters, Hash & UUID Generators, JWT Inspector, Case Converters and Webview Dashboard.",
+  "version": "0.1.0",
+  "publisher": "TechwastiInfotech",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Techwasti-Infotech/dev-utils-VSCode-plugin"
+  },
+  "homepage": "https://Techwasti-Infotech.github.io/dev-utils-VSCode-plugin/",
+  "bugs": {
+    "url": "https://github.com/Techwasti-Infotech/dev-utils-VSCode-plugin/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Techwasti Infotech",
+    "email": "techwastiinfotech@gmail.com",
+    "url": "https://techwasti.com"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Formatters",
+    "Visualization",
+    "Education"
+  ],
+  "keywords": [
+    "devutils",
+    "utilities",
+    "base64",
+    "jwt",
+    "json",
+    "uuid",
+    "hash",
+    "formatter",
+    "timestamp",
+    "offline"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:devutils.openDashboard"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "devutils.openDashboard",
+        "title": "Open Developer Dashboard",
+        "category": "DevUtils",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "devutils.base64Encode",
+        "title": "Base64: Encode Selection",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.base64Decode",
+        "title": "Base64: Decode Selection",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.urlEncode",
+        "title": "URL: Encode Selection",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.urlDecode",
+        "title": "URL: Decode Selection",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.jsonFormat",
+        "title": "JSON: Format / Prettify",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.jsonMinify",
+        "title": "JSON: Minify / Compact",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.jwtDecode",
+        "title": "JWT: Inspect & Decode Token",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.generateUUID",
+        "title": "Generate: UUID v4 (Insert at cursor)",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.timestampToDate",
+        "title": "Timestamp: Epoch to Human Date",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.currentTimestamp",
+        "title": "Timestamp: Insert Current Epoch",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.hashSha256",
+        "title": "Hash: Generate SHA-256 Checksum",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.hashMd5",
+        "title": "Hash: Generate MD5 Checksum",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.caseCamel",
+        "title": "Case: Convert to camelCase",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.caseSnake",
+        "title": "Case: Convert to snake_case",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.caseKebab",
+        "title": "Case: Convert to kebab-case",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.casePascal",
+        "title": "Case: Convert to PascalCase",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.caseConstant",
+        "title": "Case: Convert to CONSTANT_CASE",
+        "category": "DevUtils"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "submenu": "devutils.submenu",
+          "group": "1_modification"
+        }
+      ],
+      "devutils.submenu": [
+        {
+          "command": "devutils.openDashboard"
+        },
+        {
+          "command": "devutils.base64Encode"
+        },
+        {
+          "command": "devutils.base64Decode"
+        },
+        {
+          "command": "devutils.jsonFormat"
+        },
+        {
+          "command": "devutils.jwtDecode"
+        },
+        {
+          "command": "devutils.generateUUID"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "devutils.submenu",
+        "label": "DevUtils Toolbox"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "node --test dist/test/**/*.test.js",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}

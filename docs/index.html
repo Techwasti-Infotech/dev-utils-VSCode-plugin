@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevUtils for VS Code | Techwasti Infotech</title>
+  <meta name="description" content="All-in-one offline developer utilities extension for Visual Studio Code. Zero telemetry, in-memory processing.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #38bdf8;
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); line-height: 1.6; }
+    
+    header { padding: 40px 20px; border-bottom: 1px solid var(--card-border); background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+    
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+    .nav-logo { font-size: 1.3rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 20px; transition: color 0.2s; font-size: 0.95rem; }
+    .nav-links a:hover { color: #fff; }
+    
+    .hero { text-align: center; padding: 40px 0 60px; }
+    .badge { display: inline-block; background: rgba(56, 189, 248, 0.1); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 14px; border-radius: 999px; font-size: 0.85rem; font-weight: 500; margin-bottom: 20px; }
+    .hero h1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; background: linear-gradient(to right, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 1.2rem; color: var(--text-muted); max-width: 720px; margin: 0 auto 30px; }
+    
+    .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.2s; font-size: 0.95rem; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-secondary { background: var(--card-bg); color: #fff; border: 1px solid var(--card-border); }
+    .btn-secondary:hover { background: #334155; }
+    
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin: 60px 0; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 28px; transition: transform 0.2s, border-color 0.2s; }
+    .card:hover { transform: translateY(-4px); border-color: var(--accent); }
+    .card-icon { font-size: 2rem; margin-bottom: 16px; }
+    .card h3 { font-size: 1.25rem; margin-bottom: 10px; color: #fff; }
+    .card p { color: var(--text-muted); font-size: 0.95rem; }
+    
+    .demo-section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 36px; margin: 60px 0; }
+    .demo-section h2 { font-size: 1.8rem; margin-bottom: 16px; text-align: center; }
+    .command-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 24px; }
+    .command-item { background: #0f172a; border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #38bdf8; }
+    
+    footer { text-align: center; padding: 50px 20px; border-top: 1px solid var(--card-border); color: var(--text-muted); font-size: 0.9rem; }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav class="nav">
+        <div class="nav-logo">
+          <span>🛠️</span> DevUtils for VS Code
+        </div>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#commands">Commands</a>
+          <a href="https://github.com/Techwasti-Infotech/dev-utils-VSCode-plugin" target="_blank">GitHub</a>
+          <a href="https://techwasti.com" target="_blank">Techwasti</a>
+        </div>
+      </nav>
+
+      <div class="hero">
+        <span class="badge">🔒 100% Offline & Private • Zero Telemetry</span>
+        <h1>Developer Toolbox Directly in VS Code</h1>
+        <p>No more external websites or ad-ridden tools. Format JSON, decode JWTs, generate UUIDs, encode Base64, and inspect timestamps inside your editor.</p>
+        <div class="cta-group">
+          <a href="https://github.com/Techwasti-Infotech/dev-utils-VSCode-plugin" class="btn btn-primary" target="_blank">
+            <span>⭐ View on GitHub</span>
+          </a>
+          <a href="https://github.com/Techwasti-Infotech/dev-utils-VSCode-plugin/releases" class="btn btn-secondary" target="_blank">
+            <span>📦 Download VSIX</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="features" class="features-grid">
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3>Encoders & Decoders</h3>
+        <p>Base64 (UTF-8 safe), URL encoding, HTML entities, and JWT Token inspector with expiration timestamp validation.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Formatters & Minifiers</h3>
+        <p>Format or minify JSON with configurable indentation. Strict syntax validation with error line highlighting.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🎲</div>
+        <h3>Generators & Identifiers</h3>
+        <p>Generate RFC 4122 compliant UUID v4 with single or bulk batch creation. Cryptographic hashes (SHA-256, MD5, SHA-1).</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🕒</div>
+        <h3>Unix Epoch Timestamps</h3>
+        <p>Convert Unix seconds or milliseconds to human-readable ISO 8601, UTC, and local time, or insert current timestamps instantly.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🔤</div>
+        <h3>String Case Converters</h3>
+        <p>Instantly switch between camelCase, PascalCase, snake_case, kebab-case, and CONSTANT_CASE directly on text selections.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🖥️</div>
+        <h3>Visual Dashboard</h3>
+        <p>Built-in interactive Webview toolbox with tabs, live calculators, and instant one-click clipboard copying.</p>
+      </div>
+    </section>
+
+    <section id="commands" class="demo-section">
+      <h2>Quick Commands Available</h2>
+      <p style="text-align: center; color: var(--text-muted);">Use via Command Palette (<code>Ctrl+Shift+P</code> / <code>Cmd+Shift+P</code>) or Editor Context Menu</p>
+      <ul class="command-list">
+        <li class="command-item">DevUtils: Open Developer Dashboard</li>
+        <li class="command-item">DevUtils: Base64: Encode Selection</li>
+        <li class="command-item">DevUtils: Base64: Decode Selection</li>
+        <li class="command-item">DevUtils: JSON: Format / Prettify</li>
+        <li class="command-item">DevUtils: JSON: Minify / Compact</li>
+        <li class="command-item">DevUtils: JWT: Inspect & Decode Token</li>
+        <li class="command-item">DevUtils: Generate: UUID v4 (Insert)</li>
+        <li class="command-item">DevUtils: Timestamp: Epoch to Human Date</li>
+        <li class="command-item">DevUtils: Hash: Generate SHA-256 Checksum</li>
+        <li class="command-item">DevUtils: Case: Convert to camelCase</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 <strong>Techwasti Infotech</strong>. Released under the MIT License.</p>
+      <p style="margin-top: 8px;">Maintained with ❤️ by <a href="https://techwasti.com" target="_blank">Techwasti Infotech</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

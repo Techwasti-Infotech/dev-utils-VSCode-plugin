@@ -5,10 +5,17 @@ import {
   base64Decode,
   urlEncode,
   urlDecode,
+  htmlEncode,
+  htmlDecode,
+  hexEncode,
+  hexDecode,
   formatJson,
   minifyJson,
+  formatXml,
+  minifyXml,
   decodeJwt,
   generateUuidV4,
+  generateNanoid,
   generateHash,
   timestampToDate,
   getCurrentTimestamp,
@@ -16,7 +23,14 @@ import {
   toPascalCase,
   toSnakeCase,
   toKebabCase,
-  toConstantCase
+  toConstantCase,
+  toTitleCase,
+  sortLines,
+  deduplicateLines,
+  countTextStats,
+  hexToRgb,
+  rgbToHex,
+  generateLoremIpsum
 } from './utils/coreUtils';
 
 /**
@@ -98,17 +112,43 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // 4. JSON
+  // 4. HTML Entities
+  context.subscriptions.push(
+    vscode.commands.registerCommand('devutils.htmlEncode', () => {
+      transformSelection(htmlEncode, 'HTML Encode Error');
+    }),
+    vscode.commands.registerCommand('devutils.htmlDecode', () => {
+      transformSelection(htmlDecode, 'HTML Decode Error');
+    })
+  );
+
+  // 5. Hex
+  context.subscriptions.push(
+    vscode.commands.registerCommand('devutils.hexEncode', () => {
+      transformSelection(hexEncode, 'Hex Encode Error');
+    }),
+    vscode.commands.registerCommand('devutils.hexDecode', () => {
+      transformSelection(hexDecode, 'Hex Decode Error');
+    })
+  );
+
+  // 6. JSON & XML Formatters
   context.subscriptions.push(
     vscode.commands.registerCommand('devutils.jsonFormat', () => {
       transformSelection((t) => formatJson(t, 2), 'JSON Format Error');
     }),
     vscode.commands.registerCommand('devutils.jsonMinify', () => {
       transformSelection(minifyJson, 'JSON Minify Error');
+    }),
+    vscode.commands.registerCommand('devutils.xmlFormat', () => {
+      transformSelection(formatXml, 'XML Format Error');
+    }),
+    vscode.commands.registerCommand('devutils.xmlMinify', () => {
+      transformSelection(minifyXml, 'XML Minify Error');
     })
   );
 
-  // 5. JWT Inspector
+  // 7. JWT Inspector
   context.subscriptions.push(
     vscode.commands.registerCommand('devutils.jwtDecode', async () => {
       const editor = vscode.window.activeTextEditor;
@@ -136,10 +176,16 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // 6. Generators (UUID, Hashes, Timestamps)
+  // 8. Generators (UUID, Nanoid, Hashes, Timestamps, Lorem Ipsum)
   context.subscriptions.push(
     vscode.commands.registerCommand('devutils.generateUUID', () => {
       insertText(generateUuidV4());
+    }),
+    vscode.commands.registerCommand('devutils.generateNanoid', () => {
+      insertText(generateNanoid(21));
+    }),
+    vscode.commands.registerCommand('devutils.generateLorem', () => {
+      insertText(generateLoremIpsum(1));
     }),
     vscode.commands.registerCommand('devutils.hashSha256', () => {
       transformSelection((t) => generateHash(t, 'sha256'), 'SHA-256 Hash Error');
@@ -158,13 +204,29 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // 7. Case Converters
+  // 9. Case Converters
   context.subscriptions.push(
     vscode.commands.registerCommand('devutils.caseCamel', () => transformSelection(toCamelCase)),
     vscode.commands.registerCommand('devutils.caseSnake', () => transformSelection(toSnakeCase)),
     vscode.commands.registerCommand('devutils.caseKebab', () => transformSelection(toKebabCase)),
     vscode.commands.registerCommand('devutils.casePascal', () => transformSelection(toPascalCase)),
-    vscode.commands.registerCommand('devutils.caseConstant', () => transformSelection(toConstantCase))
+    vscode.commands.registerCommand('devutils.caseConstant', () => transformSelection(toConstantCase)),
+    vscode.commands.registerCommand('devutils.caseTitle', () => transformSelection(toTitleCase))
+  );
+
+  // 10. Text & Line Tools
+  context.subscriptions.push(
+    vscode.commands.registerCommand('devutils.sortLines', () => transformSelection((t) => sortLines(t, false))),
+    vscode.commands.registerCommand('devutils.deduplicateLines', () => transformSelection(deduplicateLines)),
+    vscode.commands.registerCommand('devutils.textStats', () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) return;
+      const text = editor.document.getText(editor.selection.isEmpty ? undefined : editor.selection);
+      const stats = countTextStats(text);
+      vscode.window.showInformationMessage(
+        `DevUtils Text Stats: ${stats.characters} Characters | ${stats.words} Words | ${stats.lines} Lines | ${stats.bytes} Bytes`
+      );
+    })
   );
 }
 

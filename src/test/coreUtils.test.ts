@@ -7,10 +7,15 @@ import {
   urlDecode,
   htmlEncode,
   htmlDecode,
+  hexEncode,
+  hexDecode,
   formatJson,
   minifyJson,
+  formatXml,
+  minifyXml,
   decodeJwt,
   generateUuidV4,
+  generateNanoid,
   generateHash,
   timestampToDate,
   getCurrentTimestamp,
@@ -18,7 +23,14 @@ import {
   toPascalCase,
   toSnakeCase,
   toKebabCase,
-  toConstantCase
+  toConstantCase,
+  toTitleCase,
+  sortLines,
+  deduplicateLines,
+  countTextStats,
+  hexToRgb,
+  rgbToHex,
+  generateLoremIpsum
 } from '../utils/coreUtils';
 
 test('Base64 encoding and decoding', () => {
@@ -26,6 +38,54 @@ test('Base64 encoding and decoding', () => {
   const encoded = base64Encode(original);
   assert.strictEqual(encoded, 'VGVjaHdhc3RpIEluZm90ZWNoIC0gRGV2VXRpbHM=');
   assert.strictEqual(base64Decode(encoded), original);
+});
+
+test('Hex encoding and decoding', () => {
+  const original = 'Techwasti';
+  const hex = hexEncode(original);
+  assert.strictEqual(hex, '546563687761737469');
+  assert.strictEqual(hexDecode(hex), original);
+});
+
+test('XML formatting and minifying', () => {
+  const xml = '<root><user id="1"><name>Techwasti</name></user></root>';
+  const formatted = formatXml(xml);
+  assert.ok(formatted.includes('\n'));
+  assert.strictEqual(minifyXml(formatted), xml);
+});
+
+test('Line utilities: sort & deduplicate', () => {
+  const messy = 'cherry\napple\nbanana\napple\nbanana';
+  const sorted = sortLines(messy);
+  assert.strictEqual(sorted.split('\n')[0], 'apple');
+  const unique = deduplicateLines(messy);
+  assert.strictEqual(unique.split('\n').length, 3);
+});
+
+test('Text statistics counter', () => {
+  const stats = countTextStats('Hello Techwasti Infotech');
+  assert.strictEqual(stats.words, 3);
+  assert.strictEqual(stats.characters, 24);
+  assert.strictEqual(stats.lines, 1);
+});
+
+test('Color conversions: HEX <-> RGB', () => {
+  const rgb = hexToRgb('#2563eb');
+  assert.strictEqual(rgb.r, 37);
+  assert.strictEqual(rgb.g, 99);
+  assert.strictEqual(rgb.b, 235);
+  assert.strictEqual(rgbToHex(rgb.r, rgb.g, rgb.b), '#2563eb');
+});
+
+test('Nanoid generator', () => {
+  const id = generateNanoid(16);
+  assert.strictEqual(id.length, 16);
+});
+
+test('Lorem Ipsum generator', () => {
+  const lorem = generateLoremIpsum(2);
+  assert.ok(lorem.includes('Lorem ipsum'));
+  assert.ok(lorem.includes('\n\n'));
 });
 
 test('URL encoding and decoding', () => {
@@ -51,8 +111,6 @@ test('JSON formatting and minifying', () => {
 });
 
 test('JWT decoder parses header and payload', () => {
-  // Simple header: {"alg":"HS256","typ":"JWT"}
-  // Payload: {"sub":"1234567890","name":"Techwasti","iat":1516239022,"exp":1999999999}
   const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlY2h3YXN0aSIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxOTk5OTk5OTk5fQ.signature_dummy';
   const decoded = decodeJwt(token);
   assert.strictEqual(decoded.header.alg, 'HS256');
@@ -93,4 +151,5 @@ test('Case converters transform text formats properly', () => {
   assert.strictEqual(toSnakeCase(text), 'hello_world_dev_utils');
   assert.strictEqual(toKebabCase(text), 'hello-world-dev-utils');
   assert.strictEqual(toConstantCase(text), 'HELLO_WORLD_DEV_UTILS');
+  assert.strictEqual(toTitleCase(text), 'Hello World Dev Utils');
 });

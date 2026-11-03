@@ -6,10 +6,15 @@ import {
   urlDecode,
   htmlEncode,
   htmlDecode,
+  hexEncode,
+  hexDecode,
   formatJson,
   minifyJson,
+  formatXml,
+  minifyXml,
   decodeJwt,
   generateUuidV4,
+  generateNanoid,
   generateHash,
   timestampToDate,
   getCurrentTimestamp,
@@ -17,7 +22,14 @@ import {
   toPascalCase,
   toSnakeCase,
   toKebabCase,
-  toConstantCase
+  toConstantCase,
+  toTitleCase,
+  sortLines,
+  deduplicateLines,
+  countTextStats,
+  hexToRgb,
+  rgbToHex,
+  generateLoremIpsum
 } from '../utils/coreUtils';
 
 export function getWebviewContent(): string {
@@ -87,23 +99,28 @@ export function getWebviewContent(): string {
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab('base64')">Base64</button>
     <button class="tab-btn" onclick="switchTab('json')">JSON Formatter</button>
+    <button class="tab-btn" onclick="switchTab('xml')">XML Formatter</button>
     <button class="tab-btn" onclick="switchTab('jwt')">JWT Inspector</button>
-    <button class="tab-btn" onclick="switchTab('uuid')">UUID / Generator</button>
+    <button class="tab-btn" onclick="switchTab('uuid')">UUID / Nanoid</button>
     <button class="tab-btn" onclick="switchTab('hash')">Hash Checksum</button>
     <button class="tab-btn" onclick="switchTab('timestamp')">Epoch Timestamp</button>
     <button class="tab-btn" onclick="switchTab('case')">Case Converter</button>
+    <button class="tab-btn" onclick="switchTab('lines')">Line Tools</button>
+    <button class="tab-btn" onclick="switchTab('color')">Color Picker</button>
   </div>
 
   <!-- Base64 Panel -->
   <div id="panel-base64" class="tool-panel active">
-    <h3>Base64 Encode & Decode</h3>
+    <h3>Base64 & URL & Hex Encode / Decode</h3>
     <div class="form-group" style="margin-top: 12px;">
       <label>Input Text</label>
-      <textarea id="b64-input" rows="5" placeholder="Enter text to encode or base64 string to decode..."></textarea>
+      <textarea id="b64-input" rows="5" placeholder="Enter text to process..."></textarea>
     </div>
     <div class="actions">
-      <button class="action-btn" onclick="processBase64(true)">Encode to Base64</button>
-      <button class="action-btn" onclick="processBase64(false)">Decode from Base64</button>
+      <button class="action-btn" onclick="processBase64(true)">Base64 Encode</button>
+      <button class="action-btn" onclick="processBase64(false)">Base64 Decode</button>
+      <button class="action-btn" onclick="processUrl(true)">URL Encode</button>
+      <button class="action-btn" onclick="processUrl(false)">URL Decode</button>
       <button class="sec-btn" onclick="copyOutput('b64-output')">Copy Output</button>
     </div>
     <div class="form-group output-box">
@@ -132,6 +149,24 @@ export function getWebviewContent(): string {
     </div>
   </div>
 
+  <!-- XML Panel -->
+  <div id="panel-xml" class="tool-panel">
+    <h3>XML Formatter & Minifier</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>XML String</label>
+      <textarea id="xml-input" rows="6" placeholder="<root><item>DevUtils</item></root>"></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" onclick="processXml(true)">Format XML</button>
+      <button class="action-btn" onclick="processXml(false)">Minify XML</button>
+      <button class="sec-btn" onclick="copyOutput('xml-output')">Copy Output</button>
+    </div>
+    <div class="form-group output-box">
+      <label>Output</label>
+      <textarea id="xml-output" rows="6" readonly></textarea>
+    </div>
+  </div>
+
   <!-- JWT Panel -->
   <div id="panel-jwt" class="tool-panel">
     <h3>JWT Inspector & Decoder</h3>
@@ -155,17 +190,17 @@ export function getWebviewContent(): string {
     <div id="jwt-status" class="status-msg" style="margin-top: 8px;"></div>
   </div>
 
-  <!-- UUID Panel -->
+  <!-- UUID / Generator Panel -->
   <div id="panel-uuid" class="tool-panel">
-    <h3>UUID Generator</h3>
+    <h3>UUID & Identifier Generators</h3>
     <div class="actions" style="margin-top: 12px;">
       <button class="action-btn" onclick="generateUuidBatch(1)">Generate 1 UUID</button>
       <button class="action-btn" onclick="generateUuidBatch(5)">Generate 5 UUIDs</button>
-      <button class="action-btn" onclick="generateUuidBatch(10)">Generate 10 UUIDs</button>
+      <button class="action-btn" onclick="generateNanoIdBatch(5)">Generate 5 Nanoids</button>
       <button class="sec-btn" onclick="copyOutput('uuid-output')">Copy to Clipboard</button>
     </div>
     <div class="form-group output-box">
-      <label>Generated UUIDs</label>
+      <label>Generated IDs</label>
       <textarea id="uuid-output" rows="6" readonly></textarea>
     </div>
   </div>
@@ -243,6 +278,39 @@ export function getWebviewContent(): string {
     </div>
   </div>
 
+  <!-- Line Tools Panel -->
+  <div id="panel-lines" class="tool-panel">
+    <h3>Line Sort & Deduplicate</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>Input Lines</label>
+      <textarea id="lines-input" rows="6" placeholder="zebra\napple\norange\napple"></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" onclick="processSortLines(false)">Sort A-Z</button>
+      <button class="action-btn" onclick="processSortLines(true)">Sort Z-A</button>
+      <button class="action-btn" onclick="processDeduplicateLines()">Deduplicate Lines</button>
+      <button class="sec-btn" onclick="copyOutput('lines-output')">Copy Output</button>
+    </div>
+    <div class="form-group output-box">
+      <label>Processed Lines</label>
+      <textarea id="lines-output" rows="6" readonly></textarea>
+    </div>
+  </div>
+
+  <!-- Color Panel -->
+  <div id="panel-color" class="tool-panel">
+    <h3>Color Converter (HEX & RGB)</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>HEX Color</label>
+      <input type="text" id="color-hex" value="#2563eb" oninput="convertColorFromHex()" />
+    </div>
+    <div class="form-group output-box">
+      <label>RGB Value</label>
+      <input type="text" id="color-rgb" readonly />
+    </div>
+    <div id="color-preview" style="height: 60px; border-radius: 4px; border: 1px solid var(--border); margin-top: 10px; background-color: #2563eb;"></div>
+  </div>
+
   <script>
     const vscode = acquireVsCodeApi();
 
@@ -277,6 +345,11 @@ export function getWebviewContent(): string {
       }
     }
 
+    function processUrl(isEncode) {
+      const val = document.getElementById('b64-input').value;
+      document.getElementById('b64-output').value = isEncode ? encodeURIComponent(val) : decodeURIComponent(val);
+    }
+
     function processJson(prettify) {
       const val = document.getElementById('json-input').value;
       const status = document.getElementById('json-status');
@@ -289,6 +362,33 @@ export function getWebviewContent(): string {
         status.textContent = 'Invalid JSON: ' + e.message;
         status.className = 'status-msg error';
       }
+    }
+
+    function processXml(format) {
+      const val = document.getElementById('xml-input').value;
+      if (!format) {
+        document.getElementById('xml-output').value = val.replace(/>\s+</g, '><').trim();
+        return;
+      }
+      let formatted = '';
+      let indent = 0;
+      const tab = '  ';
+      let xml = val.replace(/(>)(<)(\/*)/g, '$1\\r\\n$2$3');
+      const lines = xml.split('\\r\\n');
+      for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+        if (line.match(/^<\\\/\\w/)) {
+          if (indent > 0) indent--;
+        }
+        formatted += tab.repeat(indent) + line + '\\n';
+        if (line.match(/^<\\w[^>]*[^\\/]>/) && !line.match(/^<\\w[^>]*\\/>/)) {
+          if (!line.match(/<\\\/[^>]+>$/)) {
+            indent++;
+          }
+        }
+      }
+      document.getElementById('xml-output').value = formatted.trim();
     }
 
     function processJwt() {
@@ -328,6 +428,21 @@ export function getWebviewContent(): string {
       document.getElementById('uuid-output').value = arr.join('\\n');
     }
 
+    function generateNanoIdBatch(count) {
+      const alphabet = 'useandom-26T1983_40STAkjlqyfZ凤院whbgpvRIFnocx';
+      const arr = [];
+      for (let i = 0; i < count; i++) {
+        let id = '';
+        const bytes = new Uint8Array(21);
+        crypto.getRandomValues(bytes);
+        for (let j = 0; j < 21; j++) {
+          id += alphabet[bytes[j] % alphabet.length];
+        }
+        arr.push(id);
+      }
+      document.getElementById('uuid-output').value = arr.join('\\n');
+    }
+
     function loadCurrentTime() {
       const now = Math.floor(Date.now() / 1000);
       document.getElementById('ts-input').value = now;
@@ -345,6 +460,34 @@ export function getWebviewContent(): string {
         'UTC:      ' + d.toUTCString() + '\\n' +
         'Local:    ' + d.toString();
     }
+
+    function processSortLines(reverse) {
+      const input = document.getElementById('lines-input').value;
+      const lines = input.split(/\\r?\\n/).sort((a, b) => a.localeCompare(b));
+      if (reverse) lines.reverse();
+      document.getElementById('lines-output').value = lines.join('\\n');
+    }
+
+    function processDeduplicateLines() {
+      const input = document.getElementById('lines-input').value;
+      const lines = input.split(/\\r?\\n/);
+      const unique = Array.from(new Set(lines));
+      document.getElementById('lines-output').value = unique.join('\\n');
+    }
+
+    function convertColorFromHex() {
+      let hex = document.getElementById('color-hex').value.replace('#', '').trim();
+      if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+      if (hex.length === 6) {
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        const rgb = 'rgb(' + r + ', ' + g + ', ' + b + ')';
+        document.getElementById('color-rgb').value = rgb;
+        document.getElementById('color-preview').style.backgroundColor = rgb;
+      }
+    }
+    convertColorFromHex();
 
     // Live case converter
     document.getElementById('case-input').addEventListener('input', (e) => {
@@ -381,7 +524,6 @@ export function getWebviewContent(): string {
       const toHex = b => Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
       document.getElementById('hash-sha256').value = toHex(sha256Buf);
       document.getElementById('hash-sha1').value = toHex(sha1Buf);
-      // Fallback simple checksum for MD5 display in webview
       document.getElementById('hash-md5').value = '(Available via Command Palette MD5 command)';
     });
   </script>

@@ -1,8 +1,8 @@
 {
   "name": "dev-utils-vscode-plugin",
   "displayName": "DevUtils - Developer Utilities",
-  "description": "All-in-one offline developer toolbox: Encoders, Formatters, Hash & UUID Generators, JWT Inspector, Case Converters and Webview Dashboard.",
-  "version": "0.1.0",
+  "description": "All-in-one offline developer toolbox: Encoders, Formatters, Hash & UUID Generators, JWT Inspector, Case Converters, Line Tools and Webview Dashboard.",
+  "version": "0.2.0",
   "publisher": "TechwastiInfotech",
   "repository": {
     "type": "git",
@@ -19,7 +19,7 @@
     "url": "https://techwasti.com"
   },
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
     "Other",
@@ -33,6 +33,7 @@
     "base64",
     "jwt",
     "json",
+    "xml",
     "uuid",
     "hash",
     "formatter",
@@ -72,6 +73,26 @@
         "category": "DevUtils"
       },
       {
+        "command": "devutils.htmlEncode",
+        "title": "HTML: Encode Entities",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.htmlDecode",
+        "title": "HTML: Decode Entities",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.hexEncode",
+        "title": "Hex: Encode Text to Hex",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.hexDecode",
+        "title": "Hex: Decode Hex to Text",
+        "category": "DevUtils"
+      },
+      {
         "command": "devutils.jsonFormat",
         "title": "JSON: Format / Prettify",
         "category": "DevUtils"
@@ -82,6 +103,16 @@
         "category": "DevUtils"
       },
       {
+        "command": "devutils.xmlFormat",
+        "title": "XML: Format / Prettify",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.xmlMinify",
+        "title": "XML: Minify / Compact",
+        "category": "DevUtils"
+      },
+      {
         "command": "devutils.jwtDecode",
         "title": "JWT: Inspect & Decode Token",
         "category": "DevUtils"
@@ -89,6 +120,16 @@
       {
         "command": "devutils.generateUUID",
         "title": "Generate: UUID v4 (Insert at cursor)",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.generateNanoid",
+        "title": "Generate: Nanoid (Insert at cursor)",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.generateLorem",
+        "title": "Generate: Lorem Ipsum Paragraph",
         "category": "DevUtils"
       },
       {
@@ -135,6 +176,80 @@
         "command": "devutils.caseConstant",
         "title": "Case: Convert to CONSTANT_CASE",
         "category": "DevUtils"
+      },
+      {
+        "command": "devutils.caseTitle",
+        "title": "Case: Convert to Title Case",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.sortLines",
+        "title": "Text: Sort Lines A-Z",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.deduplicateLines",
+        "title": "Text: Deduplicate Lines",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.textStats",
+        "title": "Text: Show Word/Line/Byte Stats",
+        "category": "DevUtils"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "devutils.openDashboard",
+        "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d"
+      },
+      {
+        "command": "devutils.base64Encode",
+        "key": "ctrl+alt+b e",
+        "mac": "cmd+alt+b e",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "devutils.base64Decode",
+        "key": "ctrl+alt+b d",
+        "mac": "cmd+alt+b d",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "devutils.jsonFormat",
+        "key": "ctrl+alt+j f",
+        "mac": "cmd+alt+j f",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "devutils.jsonMinify",
+        "key": "ctrl+alt+j m",
+        "mac": "cmd+alt+j m",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "devutils.jwtDecode",
+        "key": "ctrl+alt+j w",
+        "mac": "cmd+alt+j w"
+      },
+      {
+        "command": "devutils.generateUUID",
+        "key": "ctrl+alt+u",
+        "mac": "cmd+alt+u",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "devutils.currentTimestamp",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "devutils.sortLines",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorHasSelection"
       }
     ],
     "menus": {
@@ -158,10 +273,28 @@
           "command": "devutils.jsonFormat"
         },
         {
+          "command": "devutils.xmlFormat"
+        },
+        {
           "command": "devutils.jwtDecode"
         },
         {
           "command": "devutils.generateUUID"
+        },
+        {
+          "command": "devutils.generateNanoid"
+        },
+        {
+          "command": "devutils.generateLorem"
+        },
+        {
+          "command": "devutils.sortLines"
+        },
+        {
+          "command": "devutils.deduplicateLines"
+        },
+        {
+          "command": "devutils.textStats"
         }
       ]
     },
@@ -181,7 +314,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.75.0",
     "typescript": "^5.3.3"
   }
 }

@@ -86,6 +86,18 @@ npm test
 npm run compile
 ```
 
+### Packaging & Publishing
+- Package locally to `.vsix`:
+  ```bash
+  npm run package
+  ```
+- Install local `.vsix` in VS Code:
+  ```bash
+  code --install-extension dev-utils-vscode-plugin-0.2.0.vsix
+  ```
+- **Automated CI/CD Publishing**:
+  Set the `VSCE_PAT` (Personal Access Token from [Azure DevOps / VS Code Marketplace](https://marketplace.visualstudio.com/manage)) in your GitHub Repository Secrets (`Settings > Secrets and variables > Actions`). Trigger the `Release & Publish VS Code Extension` workflow or create a GitHub Release tag to automatically package, attach the VSIX artifact, and publish to the VS Code Marketplace.
+
 ---
 
 ## 📄 License

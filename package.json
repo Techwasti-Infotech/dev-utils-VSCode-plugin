@@ -309,7 +309,7 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "test": "node --test dist/test/**/*.test.js",
+    "test": "node scripts/run-tests.js",
     "lint": "tsc --noEmit",
     "package": "vsce package --no-dependencies",
     "publish": "vsce publish"

@@ -42,6 +42,9 @@ jobs:
       - name: Typecheck / Lint
         run: npm run lint
 
+      - name: Compile Extension
+        run: npm run compile
+
       - name: Run Tests
         run: npm test
 

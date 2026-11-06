@@ -113,6 +113,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <button class="tab-btn" data-tab="lorem" onclick="switchTab('lorem')">Lorem Ipsum</button>
     <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Text Statistics</button>
     <button class="tab-btn" data-tab="curl" onclick="switchTab('curl')">cURL Converter</button>
+    <button class="tab-btn" data-tab="yaml" onclick="switchTab('yaml')">YAML & Properties</button>
     <button class="tab-btn" data-tab="ts" onclick="switchTab('ts')">JSON ➔ TS</button>
     <button class="tab-btn" data-tab="cron" onclick="switchTab('cron')">Cron Explainer</button>
   </div>
@@ -152,6 +153,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="actions">
       <button class="action-btn" id="btn-json-format" onclick="processJson(true)">Prettify / Format (2 spaces)</button>
       <button class="action-btn" id="btn-json-minify" onclick="processJson(false)">Minify / Compact</button>
+      <button class="action-btn" id="btn-json-stringify" onclick="processJsonStringify()">Stringify & Escape</button>
+      <button class="action-btn" id="btn-json-unstringify" onclick="processJsonUnescape()">Parse Escaped JSON</button>
       <button class="sec-btn" id="btn-json-sample" onclick="loadSample('json')">Load Sample</button>
       <button class="sec-btn" data-copy="json-output" onclick="copyOutput('json-output')">Copy Output</button>
       <button class="sec-btn" data-clear="json-input,json-output,json-status">Clear</button>
@@ -448,6 +451,30 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     </div>
   </div>
 
+  <!-- YAML & Properties Panel -->
+  <div id="panel-yaml" class="tool-panel">
+    <h3>YAML & Properties Converter & Formatter</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>Input Text (YAML, JSON, or Java .properties)</label>
+      <textarea id="yaml-input" rows="7" placeholder="server:\n  port: 8080\n  host: localhost\n# or\nserver.port=8080\nserver.host=localhost"></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-yaml-format" onclick="processYamlAction('format')">Format YAML</button>
+      <button class="action-btn" id="btn-yaml-to-json" onclick="processYamlAction('yamlToJson')">YAML ➔ JSON</button>
+      <button class="action-btn" id="btn-json-to-yaml" onclick="processYamlAction('jsonToYaml')">JSON ➔ YAML</button>
+      <button class="action-btn" id="btn-yaml-to-props" onclick="processYamlAction('yamlToProps')">YAML ➔ Properties</button>
+      <button class="action-btn" id="btn-props-to-yaml" onclick="processYamlAction('propsToYaml')">Properties ➔ YAML</button>
+      <button class="sec-btn" id="btn-yaml-sample" onclick="loadSample('yaml')">Load Sample</button>
+      <button class="sec-btn" data-copy="yaml-output" onclick="copyOutput('yaml-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="yaml-input,yaml-output,yaml-status">Clear</button>
+    </div>
+    <div class="form-group output-box">
+      <label>Converted Output</label>
+      <textarea id="yaml-output" rows="8" readonly></textarea>
+      <div id="yaml-status" class="status-msg"></div>
+    </div>
+  </div>
+
   <!-- JSON to TypeScript Panel -->
   <div id="panel-ts" class="tool-panel">
     <h3>JSON to TypeScript Interface Generator</h3>
@@ -581,7 +608,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlY2h3YXN0aSBEZXZlbG9wZXIiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE5OTk5OTk5OTl9.4S88qTfV2E1W2u0Jd6o2aB3r3k0v_6x7Y8z9A1b2C3D',
         curl: 'curl -X POST "https://api.techwasti.com/v1/auth" -H "Content-Type: application/json" -H "Authorization: Bearer mySecretToken" -d \\'{"username":"developer","remember":true}\\'',
         ts: '{"id":1001,"title":"DevUtils","public":true,"meta":{"views":1540,"rating":4.9},"tags":["vscode","utilities","offline"]}',
-        cron: '*/15 9-17 * * 1-5'
+        cron: '*/15 9-17 * * 1-5',
+        yaml: 'server:\\n  port: 8080\\n  host: 0.0.0.0\\nspring:\\n  application:\\n    name: dev-utils-service\\n  datasource:\\n    url: jdbc:postgresql://localhost:5432/devdb\\n    username: postgres\\n    pool:\\n      max-size: 20\\n      active: true'
       };
 
       function loadSample(tool) {
@@ -606,6 +634,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         } else if (tool === 'curl') {
           var el = document.getElementById('curl-input');
           if (el) { el.value = sampleData.curl; processCurl('fetch'); }
+        } else if (tool === 'yaml') {
+          var el = document.getElementById('yaml-input');
+          if (el) { el.value = sampleData.yaml; processYamlAction('format'); }
         } else if (tool === 'ts') {
           var el = document.getElementById('ts-input');
           if (el) { el.value = sampleData.ts; processJsonToTs(); }
@@ -636,6 +667,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
 
       var btnCurlSample = document.getElementById('btn-curl-sample');
       if (btnCurlSample) btnCurlSample.addEventListener('click', function() { loadSample('curl'); });
+
+      var btnYamlSample = document.getElementById('btn-yaml-sample');
+      if (btnYamlSample) btnYamlSample.addEventListener('click', function() { loadSample('yaml'); });
 
       var btnTsSample = document.getElementById('btn-ts-sample');
       if (btnTsSample) btnTsSample.addEventListener('click', function() { loadSample('ts'); });
@@ -723,7 +757,6 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       var btnHexDec = document.getElementById('btn-hex-decode');
       if (btnHexDec) btnHexDec.addEventListener('click', function() { processHex(false); });
 
-      // JSON Formatter & Minifier
       function processJson(prettify) {
         var inputEl = document.getElementById('json-input');
         var outputEl = document.getElementById('json-output');
@@ -741,11 +774,59 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       }
       window.processJson = processJson;
 
+      function processJsonStringify() {
+        var inputEl = document.getElementById('json-input');
+        var outputEl = document.getElementById('json-output');
+        var status = document.getElementById('json-status');
+        var val = inputEl ? inputEl.value : '';
+        try {
+          var obj;
+          try { obj = JSON.parse(val); }
+          catch(err) { obj = val; }
+          outputEl.value = JSON.stringify(JSON.stringify(obj));
+          status.textContent = 'JSON stringified and escaped!';
+          status.className = 'status-msg success';
+        } catch (e) {
+          status.textContent = 'Error: ' + e.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processJsonStringify = processJsonStringify;
+
+      function processJsonUnescape() {
+        var inputEl = document.getElementById('json-input');
+        var outputEl = document.getElementById('json-output');
+        var status = document.getElementById('json-status');
+        var val = inputEl ? inputEl.value.trim() : '';
+        try {
+          var unescaped = val;
+          if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+            try { unescaped = JSON.parse(val); } catch(err) {}
+          } else {
+            try { unescaped = JSON.parse('"' + val.replace(/"/g, '\\\\"') + '"'); } catch(err) {}
+          }
+          var parsed = typeof unescaped === 'string' ? JSON.parse(unescaped) : unescaped;
+          outputEl.value = JSON.stringify(parsed, null, 2);
+          status.textContent = 'Parsed escaped JSON successfully!';
+          status.className = 'status-msg success';
+        } catch (e) {
+          status.textContent = 'Invalid stringified JSON: ' + e.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processJsonUnescape = processJsonUnescape;
+
       var btnJsonFmt = document.getElementById('btn-json-format');
       if (btnJsonFmt) btnJsonFmt.addEventListener('click', function() { processJson(true); });
 
       var btnJsonMin = document.getElementById('btn-json-minify');
       if (btnJsonMin) btnJsonMin.addEventListener('click', function() { processJson(false); });
+
+      var btnJsonStr = document.getElementById('btn-json-stringify');
+      if (btnJsonStr) btnJsonStr.addEventListener('click', processJsonStringify);
+
+      var btnJsonUnstr = document.getElementById('btn-json-unstringify');
+      if (btnJsonUnstr) btnJsonUnstr.addEventListener('click', processJsonUnescape);
 
       // XML Formatter & Minifier
       function processXml(format) {
@@ -1368,6 +1449,210 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
 
       var btnCronExp = document.getElementById('btn-cron-explain');
       if (btnCronExp) btnCronExp.addEventListener('click', processCron);
+
+      // YAML & Properties Engine
+      function parseSimpleProperties(propsText) {
+        var lines = propsText.split(/\\r?\\n/);
+        var root = {};
+        function parseVal(v) {
+          var t = v.trim();
+          if (t.toLowerCase() === 'true') return true;
+          if (t.toLowerCase() === 'false') return false;
+          if (!isNaN(Number(t)) && t !== '') return Number(t);
+          return t;
+        }
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (!line || line.startsWith('#') || line.startsWith('!')) continue;
+          var sepIdx = line.search(/[=:]/);
+          if (sepIdx === -1) continue;
+          var key = line.substring(0, sepIdx).trim();
+          var val = line.substring(sepIdx + 1).trim();
+          var parts = key.split('.').filter(Boolean);
+          var curr = root;
+          for (var j = 0; j < parts.length; j++) {
+            var part = parts[j];
+            var isLast = j === parts.length - 1;
+            var arrMatch = part.match(/^([^\\[]+)\\[(\\d+)\\]$/);
+            if (arrMatch) {
+              var pName = arrMatch[1];
+              var idx = parseInt(arrMatch[2], 10);
+              if (!curr[pName] || !Array.isArray(curr[pName])) curr[pName] = [];
+              if (isLast) {
+                curr[pName][idx] = parseVal(val);
+              } else {
+                if (!curr[pName][idx] || typeof curr[pName][idx] !== 'object') curr[pName][idx] = {};
+                curr = curr[pName][idx];
+              }
+            } else {
+              if (isLast) {
+                curr[part] = parseVal(val);
+              } else {
+                if (!curr[part] || typeof curr[part] !== 'object') curr[part] = {};
+                curr = curr[part];
+              }
+            }
+          }
+        }
+        return root;
+      }
+
+      function objectToProperties(obj) {
+        var lines = [];
+        function flatten(curr, prefix) {
+          if (curr === null || curr === undefined) {
+            lines.push(prefix + '=');
+          } else if (Array.isArray(curr)) {
+            for (var k = 0; k < curr.length; k++) {
+              flatten(curr[k], prefix + '[' + k + ']');
+            }
+          } else if (typeof curr === 'object') {
+            var keys = Object.keys(curr);
+            for (var m = 0; m < keys.length; m++) {
+              var kName = keys[m];
+              flatten(curr[kName], prefix ? prefix + '.' + kName : kName);
+            }
+          } else {
+            lines.push(prefix + '=' + String(curr));
+          }
+        }
+        flatten(obj, '');
+        return lines.join('\\n');
+      }
+
+      function objectToYaml(data, indentLevel) {
+        var indent = indentLevel || 0;
+        var tab = '  '.repeat(indent);
+        var out = [];
+        if (data === null || data === undefined) return 'null';
+        if (typeof data !== 'object') {
+          if (typeof data === 'string' && (data.includes(':') || data.includes('#') || data.includes('\\n'))) {
+            return JSON.stringify(data);
+          }
+          return String(data);
+        }
+        if (Array.isArray(data)) {
+          if (data.length === 0) return '[]';
+          for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            if (typeof item === 'object' && item !== null) {
+              var sub = objectToYaml(item, indent + 1);
+              var subLines = sub.split(/\\r?\\n/);
+              out.push(tab + '- ' + subLines[0].trim());
+              for (var s = 1; s < subLines.length; s++) {
+                out.push(tab + '  ' + subLines[s]);
+              }
+            } else {
+              out.push(tab + '- ' + objectToYaml(item, 0));
+            }
+          }
+          return out.join('\\n');
+        }
+        var keys = Object.keys(data);
+        if (keys.length === 0) return '{}';
+        for (var k = 0; k < keys.length; k++) {
+          var key = keys[k];
+          var val = data[key];
+          if (typeof val === 'object' && val !== null) {
+            out.push(tab + key + ':');
+            out.push(objectToYaml(val, indent + 1));
+          } else {
+            out.push(tab + key + ': ' + objectToYaml(val, 0));
+          }
+        }
+        return out.join('\\n');
+      }
+
+      function parseYamlToJson(yamlText) {
+        var lines = yamlText.split(/\\r?\\n/);
+        var root = {};
+        var stack = [{ indent: -1, obj: root, isArray: false }];
+        for (var i = 0; i < lines.length; i++) {
+          var raw = lines[i];
+          if (!raw.trim() || raw.trim().startsWith('#')) continue;
+          var match = raw.match(/^(\\s*)(.*)$/);
+          var lineIndent = match ? match[1].length : 0;
+          var content = match ? match[2].trim() : '';
+
+          while (stack.length > 1 && lineIndent <= stack[stack.length - 1].indent) {
+            stack.pop();
+          }
+          var parentCtx = stack[stack.length - 1];
+          if (content.startsWith('- ')) {
+            var itemVal = content.substring(2).trim();
+            if (!Array.isArray(parentCtx.obj)) {
+              if (parentCtx.lastKey) {
+                parentCtx.obj[parentCtx.lastKey] = [];
+                parentCtx = { indent: lineIndent, obj: parentCtx.obj[parentCtx.lastKey], isArray: true };
+                stack.push(parentCtx);
+              }
+            }
+            if (itemVal.includes(':')) {
+              var subObj = {};
+              var cIdx = itemVal.indexOf(':');
+              var sKey = itemVal.substring(0, cIdx).trim();
+              var sVal = itemVal.substring(cIdx + 1).trim();
+              if (sVal) subObj[sKey] = isNaN(Number(sVal)) ? (sVal === 'true' ? true : (sVal === 'false' ? false : sVal)) : Number(sVal);
+              parentCtx.obj.push(subObj);
+              stack.push({ indent: lineIndent + 2, obj: subObj, lastKey: sKey });
+            } else {
+              var prim = isNaN(Number(itemVal)) ? (itemVal === 'true' ? true : (itemVal === 'false' ? false : itemVal)) : Number(itemVal);
+              parentCtx.obj.push(prim);
+            }
+          } else {
+            var colonIdx = content.indexOf(':');
+            if (colonIdx !== -1) {
+              var k = content.substring(0, colonIdx).trim();
+              var v = content.substring(colonIdx + 1).trim();
+              parentCtx.lastKey = k;
+              if (v === '' || v === '{}' || v === '[]') {
+                parentCtx.obj[k] = {};
+                stack.push({ indent: lineIndent, obj: parentCtx.obj[k], lastKey: null });
+              } else {
+                var pVal = isNaN(Number(v)) ? (v === 'true' ? true : (v === 'false' ? false : v.replace(/^['"]|['"]$/g, ''))) : Number(v);
+                parentCtx.obj[k] = pVal;
+              }
+            }
+          }
+        }
+        return root;
+      }
+
+      function processYamlAction(action) {
+        var inputEl = document.getElementById('yaml-input');
+        var outputEl = document.getElementById('yaml-output');
+        var status = document.getElementById('yaml-status');
+        var val = inputEl ? inputEl.value.trim() : '';
+        if (!val) return;
+        try {
+          if (action === 'format') {
+            var parsed = val.startsWith('{') || val.startsWith('[') ? JSON.parse(val) : parseYamlToJson(val);
+            outputEl.value = objectToYaml(parsed, 0);
+            status.textContent = 'Formatted YAML successfully!';
+          } else if (action === 'yamlToJson') {
+            var obj = parseYamlToJson(val);
+            outputEl.value = JSON.stringify(obj, null, 2);
+            status.textContent = 'Converted YAML to JSON!';
+          } else if (action === 'jsonToYaml') {
+            var jObj = JSON.parse(val);
+            outputEl.value = objectToYaml(jObj, 0);
+            status.textContent = 'Converted JSON to YAML!';
+          } else if (action === 'yamlToProps') {
+            var yObj = val.startsWith('{') ? JSON.parse(val) : parseYamlToJson(val);
+            outputEl.value = objectToProperties(yObj);
+            status.textContent = 'Converted YAML to Properties!';
+          } else if (action === 'propsToYaml') {
+            var pObj = parseSimpleProperties(val);
+            outputEl.value = objectToYaml(pObj, 0);
+            status.textContent = 'Converted Properties to YAML!';
+          }
+          status.className = 'status-msg success';
+        } catch (err) {
+          status.textContent = 'Error: ' + err.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processYamlAction = processYamlAction;
     })();
   </script>
 </body>

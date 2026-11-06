@@ -652,4 +652,160 @@ export function explainCron(cronStr: string): string {
   return human.charAt(0).toUpperCase() + human.slice(1);
 }
 
+/**
+ * 4. JSON Escaped Stringify & Unescape Stringified JSON
+ */
+export function jsonToStringified(input: string): string {
+  // Accepts raw JSON or text and converts into an escaped JSON string literal
+  let obj: any;
+  try {
+    obj = JSON.parse(input);
+  } catch {
+    // If not valid JSON, treat as raw string to stringify
+    return JSON.stringify(input);
+  }
+  return JSON.stringify(JSON.stringify(obj));
+}
+
+export function stringifiedToJson(input: string, indent: number = 2): string {
+  let trimmed = input.trim();
+  // If wrapped in outer quotes, parse the string layer first
+  let unescaped = trimmed;
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    try {
+      unescaped = JSON.parse(trimmed);
+    } catch {
+      // fallback
+    }
+  } else {
+    // Handle unescaped backslash sequences if user pasted string without quotes
+    try {
+      unescaped = JSON.parse(`"${trimmed.replace(/"/g, '\\"')}"`);
+    } catch {
+      // fallback
+    }
+  }
+
+  // Now parse the underlying JSON structure
+  const parsed = typeof unescaped === 'string' ? JSON.parse(unescaped) : unescaped;
+  return JSON.stringify(parsed, null, indent);
+}
+
+/**
+ * 5. YAML <-> JSON
+ */
+import * as yaml from 'js-yaml';
+
+export function formatYaml(yamlStr: string, indent: number = 2): string {
+  const parsed = yaml.load(yamlStr);
+  return yaml.dump(parsed, { indent });
+}
+
+export function yamlToJson(yamlStr: string, indent: number = 2): string {
+  const parsed = yaml.load(yamlStr);
+  return JSON.stringify(parsed, null, indent);
+}
+
+export function jsonToYaml(jsonStr: string, indent: number = 2): string {
+  const parsed = JSON.parse(jsonStr);
+  return yaml.dump(parsed, { indent });
+}
+
+/**
+ * 6. YAML <-> Java .properties file
+ */
+export function yamlToProperties(yamlStr: string): string {
+  const obj = yaml.load(yamlStr);
+  if (!obj || typeof obj !== 'object') {
+    return '';
+  }
+
+  const lines: string[] = [];
+
+  function flatten(current: any, prefix: string) {
+    if (current === null || current === undefined) {
+      lines.push(`${prefix}=`);
+    } else if (Array.isArray(current)) {
+      current.forEach((item, index) => {
+        flatten(item, `${prefix}[${index}]`);
+      });
+    } else if (typeof current === 'object') {
+      const keys = Object.keys(current);
+      for (const k of keys) {
+        const nextKey = prefix ? `${prefix}.${k}` : k;
+        flatten(current[k], nextKey);
+      }
+    } else {
+      lines.push(`${prefix}=${String(current)}`);
+    }
+  }
+
+  flatten(obj, '');
+  return lines.join('\n');
+}
+
+export function propertiesToYaml(propertiesStr: string, indent: number = 2): string {
+  const lines = propertiesStr.split(/\r?\n/);
+  const root: Record<string, any> = {};
+
+  function parseVal(v: string): any {
+    const trimmed = v.trim();
+    if (trimmed.toLowerCase() === 'true') return true;
+    if (trimmed.toLowerCase() === 'false') return false;
+    if (!isNaN(Number(trimmed)) && trimmed !== '') return Number(trimmed);
+    return trimmed;
+  }
+
+  for (let rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#') || line.startsWith('!')) {
+      continue;
+    }
+    const sepIdx = line.search(/[=:]/);
+    if (sepIdx === -1) {
+      continue;
+    }
+    const key = line.substring(0, sepIdx).trim();
+    const val = line.substring(sepIdx + 1).trim();
+
+    // Parse dotted key and array index, e.g. server.port or app.hosts[0]
+    const keyParts = key.split('.').filter(Boolean);
+    let curr = root;
+
+    for (let i = 0; i < keyParts.length; i++) {
+      let part = keyParts[i];
+      const isLast = i === keyParts.length - 1;
+
+      // Check array indexing e.g. items[0]
+      const arrayMatch = part.match(/^([^\[]+)\[(\d+)\]$/);
+      if (arrayMatch) {
+        const propName = arrayMatch[1];
+        const arrIdx = parseInt(arrayMatch[2], 10);
+        if (!curr[propName] || !Array.isArray(curr[propName])) {
+          curr[propName] = [];
+        }
+        if (isLast) {
+          curr[propName][arrIdx] = parseVal(val);
+        } else {
+          if (!curr[propName][arrIdx] || typeof curr[propName][arrIdx] !== 'object') {
+            curr[propName][arrIdx] = {};
+          }
+          curr = curr[propName][arrIdx];
+        }
+      } else {
+        if (isLast) {
+          curr[part] = parseVal(val);
+        } else {
+          if (!curr[part] || typeof curr[part] !== 'object') {
+            curr[part] = {};
+          }
+          curr = curr[part];
+        }
+      }
+    }
+  }
+
+  return yaml.dump(root, { indent });
+}
+
 

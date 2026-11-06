@@ -37,7 +37,14 @@ import {
   curlToFetch,
   curlToPython,
   jsonToTypeScript,
-  explainCron
+  explainCron,
+  jsonToStringified,
+  stringifiedToJson,
+  formatYaml,
+  yamlToJson,
+  jsonToYaml,
+  yamlToProperties,
+  propertiesToYaml
 } from './utils/coreUtils';
 
 /**
@@ -288,6 +295,27 @@ export function activate(context: vscode.ExtensionContext) {
       } catch (err: any) {
         vscode.window.showErrorMessage(`Cron Explain Error: ${err.message}`);
       }
+    }),
+    vscode.commands.registerCommand('devutils.jsonToStringified', () => {
+      transformSelection(jsonToStringified, 'JSON Stringify Error');
+    }),
+    vscode.commands.registerCommand('devutils.stringifiedToJson', () => {
+      transformSelection(stringifiedToJson, 'Unescape Stringified JSON Error');
+    }),
+    vscode.commands.registerCommand('devutils.formatYaml', () => {
+      transformSelection(formatYaml, 'YAML Format Error');
+    }),
+    vscode.commands.registerCommand('devutils.yamlToJson', () => {
+      transformSelection(yamlToJson, 'YAML to JSON Error');
+    }),
+    vscode.commands.registerCommand('devutils.jsonToYaml', () => {
+      transformSelection(jsonToYaml, 'JSON to YAML Error');
+    }),
+    vscode.commands.registerCommand('devutils.yamlToProperties', () => {
+      transformSelection(yamlToProperties, 'YAML to Properties Error');
+    }),
+    vscode.commands.registerCommand('devutils.propertiesToYaml', () => {
+      transformSelection(propertiesToYaml, 'Properties to YAML Error');
     })
   );
 }

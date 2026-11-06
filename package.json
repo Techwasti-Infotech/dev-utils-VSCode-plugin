@@ -1,8 +1,8 @@
 {
   "name": "dev-utils-vscode-plugin",
   "displayName": "DevUtils - Developer Utilities",
-  "description": "All-in-one offline developer toolbox: Encoders, Formatters, Hash & UUID Generators, JWT Inspector, Case Converters, Line Tools and Webview Dashboard.",
-  "version": "0.3.1",
+  "description": "All-in-one offline developer toolbox: YAML & Properties, Encoders, Formatters, Escaped JSON Stringify, Hash & UUID Generators, JWT Inspector, Case Converters, Line Tools and Webview Dashboard.",
+  "version": "0.3.2",
   "publisher": "TechwastiInfotech",
   "repository": {
     "type": "git",
@@ -231,6 +231,41 @@
         "command": "devutils.explainCron",
         "title": "Cron: Humanize & Explain Expression",
         "category": "DevUtils"
+      },
+      {
+        "command": "devutils.jsonToStringified",
+        "title": "JSON: Stringify & Escape JSON String",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.stringifiedToJson",
+        "title": "JSON: Parse Stringified / Escaped JSON",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.formatYaml",
+        "title": "YAML: Format / Prettify YAML",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.yamlToJson",
+        "title": "YAML: Convert YAML to JSON",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.jsonToYaml",
+        "title": "YAML: Convert JSON to YAML",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.yamlToProperties",
+        "title": "YAML: Convert YAML to Properties",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.propertiesToYaml",
+        "title": "YAML: Convert Properties to YAML",
+        "category": "DevUtils"
       }
     ],
     "keybindings": [
@@ -405,6 +440,27 @@
         },
         {
           "command": "devutils.explainCron"
+        },
+        {
+          "command": "devutils.jsonToStringified"
+        },
+        {
+          "command": "devutils.stringifiedToJson"
+        },
+        {
+          "command": "devutils.formatYaml"
+        },
+        {
+          "command": "devutils.yamlToJson"
+        },
+        {
+          "command": "devutils.jsonToYaml"
+        },
+        {
+          "command": "devutils.yamlToProperties"
+        },
+        {
+          "command": "devutils.propertiesToYaml"
         }
       ]
     },
@@ -426,9 +482,13 @@
     "publish": "vsce publish"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.75.0",
     "@vscode/vsce": "^4.1.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "js-yaml": "^5.5.0"
   }
 }

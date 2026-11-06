@@ -37,7 +37,14 @@ import {
   curlToFetch,
   curlToPython,
   jsonToTypeScript,
-  explainCron
+  explainCron,
+  jsonToStringified,
+  stringifiedToJson,
+  formatYaml,
+  yamlToJson,
+  jsonToYaml,
+  yamlToProperties,
+  propertiesToYaml
 } from '../utils/coreUtils';
 
 test('Base64 encoding and decoding', () => {
@@ -231,5 +238,61 @@ test('Cron expression explainer and humanizer', () => {
 
   const human3 = explainCron('30 14 1 5 *');
   assert.strictEqual(human3, 'At minute 30, past hour 14:00, on day-of-month 1, in May');
+});
+
+test('JSON stringify and unescape stringified JSON', () => {
+  const rawObj = { name: 'Techwasti', count: 10, nested: { ok: true } };
+  const rawJson = JSON.stringify(rawObj);
+  const stringified = jsonToStringified(rawJson);
+  assert.ok(stringified.startsWith('"{\\"name\\":\\"Techwasti\\"'));
+
+  const backToJson = stringifiedToJson(stringified);
+  assert.deepStrictEqual(JSON.parse(backToJson), rawObj);
+});
+
+test('YAML formatting, YAML to JSON, and JSON to YAML', () => {
+  const yamlContent = `
+server:
+  port: 8080
+  host: localhost
+tags:
+  - web
+  - api
+`.trim();
+
+  const formatted = formatYaml(yamlContent);
+  assert.ok(formatted.includes('server:'));
+  assert.ok(formatted.includes('port: 8080'));
+
+  const jsonStr = yamlToJson(yamlContent);
+  const parsedJson = JSON.parse(jsonStr);
+  assert.strictEqual(parsedJson.server.port, 8080);
+  assert.strictEqual(parsedJson.tags[0], 'web');
+
+  const backToYaml = jsonToYaml(jsonStr);
+  assert.ok(backToYaml.includes('port: 8080'));
+});
+
+test('YAML to Properties and Properties to YAML conversion', () => {
+  const yamlContent = `
+app:
+  name: DevUtils
+  version: 0.3.2
+database:
+  url: jdbc:mysql://localhost:3306/db
+  pool:
+    max: 10
+    active: true
+`.trim();
+
+  const props = yamlToProperties(yamlContent);
+  assert.ok(props.includes('app.name=DevUtils'));
+  assert.ok(props.includes('app.version=0.3.2'));
+  assert.ok(props.includes('database.pool.max=10'));
+  assert.ok(props.includes('database.pool.active=true'));
+
+  const backToYaml = propertiesToYaml(props);
+  assert.ok(backToYaml.includes('DevUtils'));
+  assert.ok(backToYaml.includes('3306'));
 });
 

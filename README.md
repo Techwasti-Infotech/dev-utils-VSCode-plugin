@@ -22,6 +22,10 @@ DevUtils brings common developer utilities directly into VS Code via both an **I
 
 2. **Formatters & Beautifiers**
    - JSON Formatter & Minifier with syntax validation
+   - JSON Stringify & Escape / Parse Stringified JSON (handles escaped JSON string payloads)
+   - YAML Formatter & Prettifier
+   - YAML ⇄ JSON Bidirectional Converter
+   - YAML ⇄ Java `.properties` Bidirectional Converter
    - XML Formatter & Minifier
    - SQL Query Formatter (keywords uppercase, clauses formatted)
    - CSV ⇄ JSON bidirectional converter
@@ -141,23 +145,43 @@ DevUtils is designed to work seamlessly without leaving your workflow:
   }
   ```
 
-#### 4. JWT Inspector (`DevUtils: JWT: Inspect & Decode Token`)
+#### 4. JSON Stringify & Parse Escaped JSON (`DevUtils: JSON: Stringify & Escape` / `DevUtils: JSON: Parse Stringified / Escaped JSON`)
+* **Use Case**: Quickly escape JSON objects into a single escaped string suitable for API payloads, environment variables, or databases; or unescape ugly escaped JSON strings (`"{\"user\":\"alice\",\"role\":\"admin\"}"`) back into clean, formatted JSON with one click.
+
+#### 5. YAML ⇄ Properties Converter (`DevUtils: YAML: Convert YAML to Properties` / `Properties to YAML`)
+* **YAML**:
+  ```yaml
+  server:
+    port: 8080
+    host: localhost
+  spring:
+    datasource:
+      url: jdbc:mysql://localhost:3306/db
+  ```
+* **Converted Properties**:
+  ```properties
+  server.port=8080
+  server.host=localhost
+  spring.datasource.url=jdbc:mysql://localhost:3306/db
+  ```
+
+#### 6. JWT Inspector (`DevUtils: JWT: Inspect & Decode Token`)
 * Run command and paste any `Bearer` JWT token. DevUtils instantly decodes the **Header** and **Payload claims** into a new formatted JSON editor preview, and alerts you whether the token is currently **Valid** or **Expired**.
 
-#### 5. Case Converters (`DevUtils: Case: Convert to camelCase / snake_case / kebab-case`)
+#### 7. Case Converters (`DevUtils: Case: Convert to camelCase / snake_case / kebab-case`)
 * Select `user registration service` and convert instantly:
   - camelCase: `userRegistrationService`
   - CONSTANT_CASE: `USER_REGISTRATION_SERVICE`
   - kebab-case: `user-registration-service`
   - PascalCase: `UserRegistrationService`
 
-#### 6. Convert cURL to Fetch / Python (`DevUtils: cURL: Convert to JavaScript Fetch`)
+#### 8. Convert cURL to Fetch / Python (`DevUtils: cURL: Convert to JavaScript Fetch`)
 * Convert any raw `curl` command into production-ready JavaScript `fetch(...)` or Python `requests.post(...)` without any external tools.
 
-#### 7. JSON to TypeScript Interfaces (`DevUtils: JSON: Generate TypeScript Interfaces`)
+#### 9. JSON to TypeScript Interfaces (`DevUtils: JSON: Generate TypeScript Interfaces`)
 * Select or open any JSON response and generate typed interfaces with recursive child types and clean exports.
 
-#### 8. Cron Expression Humanizer (`DevUtils: Cron: Humanize & Explain Expression`)
+#### 10. Cron Expression Humanizer (`DevUtils: Cron: Humanize & Explain Expression`)
 * Turns `*/15 9-17 * * 1-5` into *"Every 15 minutes, between hours 9-17, Monday through Friday"*.
 
 ---

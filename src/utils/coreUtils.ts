@@ -417,3 +417,239 @@ export function jsonToCsv(jsonStr: string): string {
   return rows.join('\n');
 }
 
+/**
+ * 1. cURL to Fetch / Axios / Python Code Converter
+ */
+export interface CurlParseResult {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  data?: string;
+}
+
+export function parseCurl(curlCmd: string): CurlParseResult {
+  const clean = curlCmd.replace(/\\\r?\n/g, ' ').trim();
+  let method = 'GET';
+  let url = '';
+  const headers: Record<string, string> = {};
+  let data: string | undefined;
+
+  // Regex to extract arguments preserving quotes
+  const argRegex = /(-[A-Za-z]|--[A-Za-z-]+)(?:\s+(?:'([^']*)'|"([^"]*)"|([^\s]+)))?/g;
+  let match: RegExpExecArray | null;
+
+  // Extract URL
+  const urlMatch = clean.match(/(?:curl\s+)?(?:'([^']*)'|"([^"]*)"|(https?:\/\/[^\s'"]+))/i);
+  if (urlMatch) {
+    url = urlMatch[1] || urlMatch[2] || urlMatch[3] || '';
+  }
+
+  while ((match = argRegex.exec(clean)) !== null) {
+    const flag = match[1];
+    const val = match[2] ?? match[3] ?? match[4] ?? '';
+
+    if (flag === '-X' || flag === '--request') {
+      method = val.toUpperCase();
+    } else if (flag === '-H' || flag === '--header') {
+      const colonIdx = val.indexOf(':');
+      if (colonIdx > -1) {
+        const k = val.substring(0, colonIdx).trim();
+        const v = val.substring(colonIdx + 1).trim();
+        headers[k] = v;
+      }
+    } else if (flag === '-d' || flag === '--data' || flag === '--data-raw') {
+      data = val;
+      if (method === 'GET') method = 'POST';
+    }
+  }
+
+  if (!url) {
+    const fallback = clean.split(/\s+/).find(p => p.startsWith('http://') || p.startsWith('https://'));
+    if (fallback) url = fallback.replace(/['"]/g, '');
+  }
+
+  return { url: url || 'https://api.example.com/data', method, headers, data };
+}
+
+export function curlToFetch(curlCmd: string): string {
+  const p = parseCurl(curlCmd);
+  const options: Record<string, any> = { method: p.method };
+  if (Object.keys(p.headers).length > 0) options.headers = p.headers;
+  if (p.data) {
+    try {
+      options.body = JSON.stringify(JSON.parse(p.data), null, 2);
+    } catch {
+      options.body = p.data;
+    }
+  }
+
+  let bodyStr = '';
+  if (options.body) {
+    bodyStr = `,\n  body: JSON.stringify(${options.body})`;
+  }
+
+  const headersStr = options.headers ? `,\n  headers: ${JSON.stringify(options.headers, null, 4).replace(/\n/g, '\n  ')}` : '';
+
+  return `// JavaScript Fetch
+fetch("${p.url}", {
+  method: "${p.method}"${headersStr}${bodyStr}
+})
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error("Error:", error));`;
+}
+
+export function curlToPython(curlCmd: string): string {
+  const p = parseCurl(curlCmd);
+  const lines: string[] = ['import requests', ''];
+  const args: string[] = [`"${p.url}"`];
+
+  if (Object.keys(p.headers).length > 0) {
+    lines.push(`headers = ${JSON.stringify(p.headers, null, 4)}`);
+    args.push('headers=headers');
+  }
+
+  if (p.data) {
+    try {
+      lines.push(`data = ${JSON.stringify(JSON.parse(p.data), null, 4)}`);
+      args.push('json=data');
+    } catch {
+      lines.push(`data = ${JSON.stringify(p.data)}`);
+      args.push('data=data');
+    }
+  }
+
+  const method = p.method.toLowerCase();
+  lines.push('');
+  lines.push(`response = requests.${method}(${args.join(', ')})`);
+  lines.push('print(response.status_code)');
+  lines.push('print(response.json())');
+
+  return lines.join('\n');
+}
+
+/**
+ * 2. JSON to TypeScript Interface Generator
+ */
+export function jsonToTypeScript(jsonStr: string, rootInterfaceName: string = 'RootObject'): string {
+  const data = JSON.parse(jsonStr);
+  const interfaces: Record<string, Record<string, string>> = {};
+
+  function capitalize(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function getType(val: any, propName: string): string {
+    if (val === null || val === undefined) return 'any';
+    if (typeof val === 'string') return 'string';
+    if (typeof val === 'number') return 'number';
+    if (typeof val === 'boolean') return 'boolean';
+
+    if (Array.isArray(val)) {
+      if (val.length === 0) return 'any[]';
+      const itemType = getType(val[0], propName.endsWith('s') ? propName.slice(0, -1) : propName + 'Item');
+      return `${itemType}[]`;
+    }
+
+    if (typeof val === 'object') {
+      const childName = capitalize(propName);
+      buildInterface(val, childName);
+      return childName;
+    }
+
+    return 'any';
+  }
+
+  function buildInterface(obj: Record<string, any>, name: string) {
+    if (interfaces[name]) return;
+    const props: Record<string, string> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      props[k] = getType(v, k);
+    }
+    interfaces[name] = props;
+  }
+
+  if (Array.isArray(data)) {
+    if (data.length > 0 && typeof data[0] === 'object') {
+      buildInterface(data[0], rootInterfaceName);
+    }
+  } else if (typeof data === 'object' && data !== null) {
+    buildInterface(data, rootInterfaceName);
+  }
+
+  const output: string[] = [];
+  for (const [name, props] of Object.entries(interfaces)) {
+    output.push(`export interface ${name} {`);
+    for (const [prop, type] of Object.entries(props)) {
+      output.push(`  ${prop}: ${type};`);
+    }
+    output.push('}\n');
+  }
+
+  return output.join('\n').trim();
+}
+
+/**
+ * 3. Cron Expression Explainer & Humanizer
+ */
+export function explainCron(cronStr: string): string {
+  const parts = cronStr.trim().split(/\s+/);
+  if (parts.length < 5) {
+    throw new Error('Cron expression must have at least 5 fields: minute hour day-of-month month day-of-week');
+  }
+
+  const [min, hour, dom, mon, dow] = parts;
+
+  const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  const desc: string[] = [];
+
+  // Minutes
+  if (min === '*') {
+    desc.push('every minute');
+  } else if (min.startsWith('*/')) {
+    desc.push(`every ${min.substring(2)} minutes`);
+  } else {
+    desc.push(`at minute ${min}`);
+  }
+
+  // Hours
+  if (hour === '*') {
+    // of every hour
+  } else if (hour.startsWith('*/')) {
+    desc.push(`every ${hour.substring(2)} hours`);
+  } else if (hour.includes('-')) {
+    desc.push(`between hours ${hour}`);
+  } else {
+    desc.push(`past hour ${hour}:00`);
+  }
+
+  // Day of month
+  if (dom !== '*') {
+    desc.push(`on day-of-month ${dom}`);
+  }
+
+  // Month
+  if (mon !== '*') {
+    const mNum = parseInt(mon, 10);
+    const mStr = monthNames[mNum] || mon;
+    desc.push(`in ${mStr}`);
+  }
+
+  // Day of week
+  if (dow !== '*') {
+    if (dow === '1-5') {
+      desc.push('Monday through Friday');
+    } else {
+      const dNum = parseInt(dow, 10);
+      const dStr = dayNames[dNum] || dow;
+      desc.push(`on ${dStr}`);
+    }
+  }
+
+  const human = desc.join(', ');
+  return human.charAt(0).toUpperCase() + human.slice(1);
+}
+
+

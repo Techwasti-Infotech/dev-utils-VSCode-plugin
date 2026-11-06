@@ -33,7 +33,11 @@ import {
   generateLoremIpsum,
   formatSql,
   csvToJson,
-  jsonToCsv
+  jsonToCsv,
+  curlToFetch,
+  curlToPython,
+  jsonToTypeScript,
+  explainCron
 } from '../utils/coreUtils';
 
 test('Base64 encoding and decoding', () => {
@@ -179,3 +183,53 @@ test('CSV to JSON and JSON to CSV conversion', () => {
   assert.strictEqual(backToCsv.split('\n')[0], 'name,role,active');
   assert.ok(backToCsv.includes('Techwasti,Admin,true'));
 });
+
+test('cURL parser and code generator for Fetch & Python', () => {
+  const curl = `curl -X POST "https://api.techwasti.com/v1/users" -H "Content-Type: application/json" -H "Authorization: Bearer token123" -d '{"name":"John","role":"admin"}'`;
+  
+  const jsCode = curlToFetch(curl);
+  assert.ok(jsCode.includes('fetch("https://api.techwasti.com/v1/users"'));
+  assert.ok(jsCode.includes('method: "POST"'));
+  assert.ok(jsCode.includes('Bearer token123'));
+  assert.ok(jsCode.includes('"name": "John"'));
+
+  const pyCode = curlToPython(curl);
+  assert.ok(pyCode.includes('import requests'));
+  assert.ok(pyCode.includes('requests.post'));
+  assert.ok(pyCode.includes('https://api.techwasti.com/v1/users'));
+  assert.ok(pyCode.includes('json=data'));
+});
+
+test('JSON to TypeScript interface generator', () => {
+  const json = JSON.stringify({
+    id: 1,
+    name: 'Techwasti',
+    active: true,
+    tags: ['developer', 'tools'],
+    details: {
+      location: 'India',
+      stars: 5
+    }
+  });
+
+  const ts = jsonToTypeScript(json, 'UserResponse');
+  assert.ok(ts.includes('export interface UserResponse {'));
+  assert.ok(ts.includes('id: number;'));
+  assert.ok(ts.includes('name: string;'));
+  assert.ok(ts.includes('active: boolean;'));
+  assert.ok(ts.includes('tags: string[];'));
+  assert.ok(ts.includes('export interface Details {'));
+  assert.ok(ts.includes('location: string;'));
+});
+
+test('Cron expression explainer and humanizer', () => {
+  const human1 = explainCron('*/15 * * * *');
+  assert.strictEqual(human1, 'Every 15 minutes');
+
+  const human2 = explainCron('0 9 * * 1-5');
+  assert.strictEqual(human2, 'At minute 0, past hour 9:00, Monday through Friday');
+
+  const human3 = explainCron('30 14 1 5 *');
+  assert.strictEqual(human3, 'At minute 30, past hour 14:00, on day-of-month 1, in May');
+});
+

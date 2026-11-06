@@ -2,7 +2,7 @@
   "name": "dev-utils-vscode-plugin",
   "displayName": "DevUtils - Developer Utilities",
   "description": "All-in-one offline developer toolbox: Encoders, Formatters, Hash & UUID Generators, JWT Inspector, Case Converters, Line Tools and Webview Dashboard.",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "publisher": "TechwastiInfotech",
   "repository": {
     "type": "git",
@@ -211,6 +211,26 @@
         "command": "devutils.textStats",
         "title": "Text: Show Word/Line/Byte Stats",
         "category": "DevUtils"
+      },
+      {
+        "command": "devutils.curlToFetch",
+        "title": "cURL: Convert to JavaScript Fetch",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.curlToPython",
+        "title": "cURL: Convert to Python Requests",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.jsonToTs",
+        "title": "JSON: Generate TypeScript Interfaces",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.explainCron",
+        "title": "Cron: Humanize & Explain Expression",
+        "category": "DevUtils"
       }
     ],
     "keybindings": [
@@ -373,6 +393,18 @@
         },
         {
           "command": "devutils.textStats"
+        },
+        {
+          "command": "devutils.curlToFetch"
+        },
+        {
+          "command": "devutils.curlToPython"
+        },
+        {
+          "command": "devutils.jsonToTs"
+        },
+        {
+          "command": "devutils.explainCron"
         }
       ]
     },

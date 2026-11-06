@@ -33,7 +33,11 @@ import {
   generateLoremIpsum,
   formatSql,
   csvToJson,
-  jsonToCsv
+  jsonToCsv,
+  curlToFetch,
+  curlToPython,
+  jsonToTypeScript,
+  explainCron
 } from './utils/coreUtils';
 
 /**
@@ -238,6 +242,52 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage(
         `DevUtils Text Stats: ${stats.characters} Characters | ${stats.words} Words | ${stats.lines} Lines | ${stats.bytes} Bytes`
       );
+    })
+  );
+
+  // 11. New Utilities: cURL, JSON to TS, Cron Explainer
+  context.subscriptions.push(
+    vscode.commands.registerCommand('devutils.curlToFetch', () => {
+      transformSelection(curlToFetch, 'cURL to Fetch Error');
+    }),
+    vscode.commands.registerCommand('devutils.curlToPython', () => {
+      transformSelection(curlToPython, 'cURL to Python Error');
+    }),
+    vscode.commands.registerCommand('devutils.jsonToTs', async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) return;
+      const text = editor.document.getText(editor.selection.isEmpty ? undefined : editor.selection);
+      if (!text) {
+        vscode.window.showWarningMessage('DevUtils: Please select or open JSON content.');
+        return;
+      }
+      try {
+        const tsOutput = jsonToTypeScript(text, 'RootInterface');
+        const doc = await vscode.workspace.openTextDocument({
+          content: tsOutput,
+          language: 'typescript'
+        });
+        vscode.window.showTextDocument(doc, { preview: true });
+      } catch (err: any) {
+        vscode.window.showErrorMessage(`JSON to TS Error: ${err.message}`);
+      }
+    }),
+    vscode.commands.registerCommand('devutils.explainCron', async () => {
+      const editor = vscode.window.activeTextEditor;
+      let cron = editor ? editor.document.getText(editor.selection) : '';
+      if (!cron) {
+        cron = (await vscode.window.showInputBox({
+          prompt: 'Enter standard 5-part cron expression (e.g. */15 9-17 * * 1-5)',
+          placeHolder: '*/15 * * * *'
+        })) || '';
+      }
+      if (!cron) return;
+      try {
+        const explanation = explainCron(cron);
+        vscode.window.showInformationMessage(`DevUtils Cron: "${cron}" ➔ ${explanation}`);
+      } catch (err: any) {
+        vscode.window.showErrorMessage(`Cron Explain Error: ${err.message}`);
+      }
     })
   );
 }

@@ -112,6 +112,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <button class="tab-btn" data-tab="color" onclick="switchTab('color')">Color Picker</button>
     <button class="tab-btn" data-tab="lorem" onclick="switchTab('lorem')">Lorem Ipsum</button>
     <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Text Statistics</button>
+    <button class="tab-btn" data-tab="curl" onclick="switchTab('curl')">cURL Converter</button>
+    <button class="tab-btn" data-tab="ts" onclick="switchTab('ts')">JSON ➔ TS</button>
+    <button class="tab-btn" data-tab="cron" onclick="switchTab('cron')">Cron Explainer</button>
   </div>
 
   <!-- Base64 Panel -->
@@ -403,6 +406,63 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     </div>
   </div>
 
+  <!-- cURL Panel -->
+  <div id="panel-curl" class="tool-panel">
+    <h3>cURL to Code Converter</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>cURL Command</label>
+      <textarea id="curl-input" rows="5" placeholder='curl -X POST "https://api.example.com/items" -H "Content-Type: application/json" -d "{\"name\":\"Widget\"}"'></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-curl-fetch" onclick="processCurl('fetch')">Convert to Fetch (JS)</button>
+      <button class="action-btn" id="btn-curl-python" onclick="processCurl('python')">Convert to Python (requests)</button>
+      <button class="sec-btn" id="btn-curl-sample" onclick="loadSample('curl')">Load Sample</button>
+      <button class="sec-btn" data-copy="curl-output" onclick="copyOutput('curl-output')">Copy Output</button>
+    </div>
+    <div class="form-group output-box">
+      <label>Generated Code</label>
+      <textarea id="curl-output" rows="8" readonly></textarea>
+      <div id="curl-status" class="status-msg"></div>
+    </div>
+  </div>
+
+  <!-- JSON to TypeScript Panel -->
+  <div id="panel-ts" class="tool-panel">
+    <h3>JSON to TypeScript Interface Generator</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>JSON Object or Array</label>
+      <textarea id="ts-input" rows="6" placeholder='{"id": 1, "username": "alice", "roles": ["admin"], "profile": {"age": 30}}'></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-ts-generate" onclick="processJsonToTs()">Generate Interfaces</button>
+      <button class="sec-btn" id="btn-ts-sample" onclick="loadSample('ts')">Load Sample</button>
+      <button class="sec-btn" data-copy="ts-output" onclick="copyOutput('ts-output')">Copy Interfaces</button>
+    </div>
+    <div class="form-group output-box">
+      <label>TypeScript Interfaces</label>
+      <textarea id="ts-output" rows="8" readonly></textarea>
+      <div id="ts-status" class="status-msg"></div>
+    </div>
+  </div>
+
+  <!-- Cron Explainer Panel -->
+  <div id="panel-cron" class="tool-panel">
+    <h3>Cron Expression Explainer & Humanizer</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>Cron Expression (5 fields: min hour dom mon dow)</label>
+      <input type="text" id="cron-input" placeholder="*/15 9-17 * * 1-5" />
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-cron-explain" onclick="processCron()">Explain Expression</button>
+      <button class="sec-btn" id="btn-cron-sample" onclick="loadSample('cron')">Load Sample</button>
+    </div>
+    <div class="form-group output-box">
+      <label>Human Readable Meaning</label>
+      <textarea id="cron-output" rows="3" readonly></textarea>
+      <div id="cron-status" class="status-msg"></div>
+    </div>
+  </div>
+
   <script nonce="${nonce}">
     (function() {
       // Tab switching
@@ -459,7 +519,10 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         xml: '<project name="DevUtils"><version>0.2.1</version><author><name>Techwasti</name></author></project>',
         sql: 'select u.id, u.name, u.email from users u inner join orders o on u.id = o.user_id where u.active = 1 and o.status = "completed" order by o.created_at desc limit 20',
         csv: 'id,product,category,price,in_stock\n101,VS Code Extension,Developer Tools,0.00,true\n102,Offline Dashboard,Utilities,0.00,true\n103,Code Formatter,Productivity,0.00,true',
-        jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlY2h3YXN0aSBEZXZlbG9wZXIiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE5OTk5OTk5OTl9.4S88qTfV2E1W2u0Jd6o2aB3r3k0v_6x7Y8z9A1b2C3D'
+        jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlY2h3YXN0aSBEZXZlbG9wZXIiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE5OTk5OTk5OTl9.4S88qTfV2E1W2u0Jd6o2aB3r3k0v_6x7Y8z9A1b2C3D',
+        curl: 'curl -X POST "https://api.techwasti.com/v1/auth" -H "Content-Type: application/json" -H "Authorization: Bearer mySecretToken" -d \'{"username":"developer","remember":true}\'',
+        ts: '{"id":1001,"title":"DevUtils","public":true,"meta":{"views":1540,"rating":4.9},"tags":["vscode","utilities","offline"]}',
+        cron: '*/15 9-17 * * 1-5'
       };
 
       function loadSample(tool) {
@@ -481,6 +544,15 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         } else if (tool === 'jwt') {
           var el = document.getElementById('jwt-input');
           if (el) { el.value = sampleData.jwt; processJwt(); }
+        } else if (tool === 'curl') {
+          var el = document.getElementById('curl-input');
+          if (el) { el.value = sampleData.curl; processCurl('fetch'); }
+        } else if (tool === 'ts') {
+          var el = document.getElementById('ts-input');
+          if (el) { el.value = sampleData.ts; processJsonToTs(); }
+        } else if (tool === 'cron') {
+          var el = document.getElementById('cron-input');
+          if (el) { el.value = sampleData.cron; processCron(); }
         }
       }
       window.loadSample = loadSample;
@@ -502,6 +574,15 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
 
       var btnJwtSample = document.getElementById('btn-jwt-sample');
       if (btnJwtSample) btnJwtSample.addEventListener('click', function() { loadSample('jwt'); });
+
+      var btnCurlSample = document.getElementById('btn-curl-sample');
+      if (btnCurlSample) btnCurlSample.addEventListener('click', function() { loadSample('curl'); });
+
+      var btnTsSample = document.getElementById('btn-ts-sample');
+      if (btnTsSample) btnTsSample.addEventListener('click', function() { loadSample('ts'); });
+
+      var btnCronSample = document.getElementById('btn-cron-sample');
+      if (btnCronSample) btnCronSample.addEventListener('click', function() { loadSample('cron'); });
 
       // Base64 & URL
       function processBase64(isEncode) {
@@ -1037,6 +1118,197 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
           document.getElementById('stats-bytes').value = bytes;
         });
       }
+
+      // cURL to Code Processor
+      function processCurl(targetLang) {
+        var inputEl = document.getElementById('curl-input');
+        var outputEl = document.getElementById('curl-output');
+        var status = document.getElementById('curl-status');
+        var cmd = inputEl ? inputEl.value.trim() : '';
+        if (!cmd) return;
+        try {
+          var clean = cmd.replace(/\\\r?\n/g, ' ').trim();
+          var method = 'GET';
+          var url = '';
+          var headers = {};
+          var data = undefined;
+
+          var argRegex = /(-[A-Za-z]|--[A-Za-z-]+)(?:\s+(?:'([^']*)'|"([^"]*)"|([^\s]+)))?/g;
+          var match;
+          var urlMatch = clean.match(/(?:curl\s+)?(?:'([^']*)'|"([^"]*)"|(https?:\/\/[^\s'"]+))/i);
+          if (urlMatch) url = urlMatch[1] || urlMatch[2] || urlMatch[3] || '';
+
+          while ((match = argRegex.exec(clean)) !== null) {
+            var flag = match[1];
+            var val = match[2] !== undefined ? match[2] : (match[3] !== undefined ? match[3] : (match[4] || ''));
+            if (flag === '-X' || flag === '--request') method = val.toUpperCase();
+            else if (flag === '-H' || flag === '--header') {
+              var cIdx = val.indexOf(':');
+              if (cIdx > -1) headers[val.substring(0, cIdx).trim()] = val.substring(cIdx + 1).trim();
+            } else if (flag === '-d' || flag === '--data' || flag === '--data-raw') {
+              data = val;
+              if (method === 'GET') method = 'POST';
+            }
+          }
+          if (!url) {
+            var parts = clean.split(/\s+/);
+            for (var p = 0; p < parts.length; p++) {
+              if (parts[p].startsWith('http://') || parts[p].startsWith('https://')) {
+                url = parts[p].replace(/['"]/g, '');
+                break;
+              }
+            }
+          }
+          url = url || 'https://api.example.com/data';
+
+          if (targetLang === 'fetch') {
+            var opts = { method: method };
+            if (Object.keys(headers).length > 0) opts.headers = headers;
+            var bodyCode = '';
+            if (data) {
+              try { bodyCode = ',\n  body: JSON.stringify(' + JSON.stringify(JSON.parse(data), null, 2) + ')'; }
+              catch(e) { bodyCode = ',\n  body: ' + JSON.stringify(data); }
+            }
+            var hStr = Object.keys(headers).length > 0 ? ',\n  headers: ' + JSON.stringify(headers, null, 2) : '';
+            outputEl.value = '// JavaScript Fetch\nfetch("' + url + '", {\n  method: "' + method + '"' + hStr + bodyCode + '\n})\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));';
+          } else {
+            var pyLines = ['import requests', ''];
+            var pyArgs = ['"' + url + '"'];
+            if (Object.keys(headers).length > 0) {
+              pyLines.push('headers = ' + JSON.stringify(headers, null, 4));
+              pyArgs.push('headers=headers');
+            }
+            if (data) {
+              try {
+                pyLines.push('data = ' + JSON.stringify(JSON.parse(data), null, 4));
+                pyArgs.push('json=data');
+              } catch(e) {
+                pyLines.push('data = ' + JSON.stringify(data));
+                pyArgs.push('data=data');
+              }
+            }
+            pyLines.push('');
+            pyLines.push('response = requests.' + method.toLowerCase() + '(' + pyArgs.join(', ') + ')');
+            pyLines.push('print(response.status_code)');
+            pyLines.push('print(response.json())');
+            outputEl.value = pyLines.join('\n');
+          }
+          status.textContent = 'Generated code successfully!';
+          status.className = 'status-msg success';
+        } catch(err) {
+          status.textContent = 'Error parsing cURL: ' + err.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processCurl = processCurl;
+
+      var btnCurlFetch = document.getElementById('btn-curl-fetch');
+      if (btnCurlFetch) btnCurlFetch.addEventListener('click', function() { processCurl('fetch'); });
+
+      var btnCurlPy = document.getElementById('btn-curl-python');
+      if (btnCurlPy) btnCurlPy.addEventListener('click', function() { processCurl('python'); });
+
+      // JSON to TypeScript Interfaces
+      function processJsonToTs() {
+        var inputEl = document.getElementById('ts-input');
+        var outputEl = document.getElementById('ts-output');
+        var status = document.getElementById('ts-status');
+        var val = inputEl ? inputEl.value.trim() : '';
+        if (!val) return;
+        try {
+          var data = JSON.parse(val);
+          var ifaces = {};
+          function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+          function getType(v, prop) {
+            if (v === null || v === undefined) return 'any';
+            if (typeof v === 'string') return 'string';
+            if (typeof v === 'number') return 'number';
+            if (typeof v === 'boolean') return 'boolean';
+            if (Array.isArray(v)) {
+              if (v.length === 0) return 'any[]';
+              var sub = getType(v[0], prop.endsWith('s') ? prop.slice(0, -1) : prop + 'Item');
+              return sub + '[]';
+            }
+            if (typeof v === 'object') {
+              var cName = capitalize(prop);
+              buildIface(v, cName);
+              return cName;
+            }
+            return 'any';
+          }
+          function buildIface(obj, name) {
+            if (ifaces[name]) return;
+            var props = {};
+            for (var k in obj) { props[k] = getType(obj[k], k); }
+            ifaces[name] = props;
+          }
+          if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object') {
+            buildIface(data[0], 'RootObject');
+          } else if (typeof data === 'object' && data !== null) {
+            buildIface(data, 'RootObject');
+          }
+          var out = [];
+          for (var iName in ifaces) {
+            out.push('export interface ' + iName + ' {');
+            for (var p in ifaces[iName]) {
+              out.push('  ' + p + ': ' + ifaces[iName][p] + ';');
+            }
+            out.push('}\n');
+          }
+          outputEl.value = out.join('\n').trim();
+          status.textContent = 'TypeScript interfaces generated!';
+          status.className = 'status-msg success';
+        } catch(err) {
+          status.textContent = 'Error parsing JSON: ' + err.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processJsonToTs = processJsonToTs;
+
+      var btnTsGen = document.getElementById('btn-ts-generate');
+      if (btnTsGen) btnTsGen.addEventListener('click', processJsonToTs);
+
+      // Cron Explainer
+      function processCron() {
+        var inputEl = document.getElementById('cron-input');
+        var outputEl = document.getElementById('cron-output');
+        var status = document.getElementById('cron-status');
+        var val = inputEl ? inputEl.value.trim() : '';
+        if (!val) return;
+        try {
+          var parts = val.split(/\s+/);
+          if (parts.length < 5) throw new Error('Requires 5 fields (min hour dom mon dow)');
+          var min = parts[0], hour = parts[1], dom = parts[2], mon = parts[3], dow = parts[4];
+          var monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+          var desc = [];
+          if (min === '*') desc.push('every minute');
+          else if (min.startsWith('*/')) desc.push('every ' + min.substring(2) + ' minutes');
+          else desc.push('at minute ' + min);
+
+          if (hour.startsWith('*/')) desc.push('every ' + hour.substring(2) + ' hours');
+          else if (hour.includes('-')) desc.push('between hours ' + hour);
+          else if (hour !== '*') desc.push('past hour ' + hour + ':00');
+
+          if (dom !== '*') desc.push('on day-of-month ' + dom);
+          if (mon !== '*') desc.push('in ' + (monthNames[parseInt(mon, 10)] || mon));
+          if (dow !== '*') {
+            if (dow === '1-5') desc.push('Monday through Friday');
+            else desc.push('on ' + (dayNames[parseInt(dow, 10)] || dow));
+          }
+          var text = desc.join(', ');
+          outputEl.value = text.charAt(0).toUpperCase() + text.slice(1);
+          status.textContent = 'Cron explained!';
+          status.className = 'status-msg success';
+        } catch(err) {
+          status.textContent = 'Error: ' + err.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processCron = processCron;
+
+      var btnCronExp = document.getElementById('btn-cron-explain');
+      if (btnCronExp) btnCronExp.addEventListener('click', processCron);
     })();
   </script>
 </body>

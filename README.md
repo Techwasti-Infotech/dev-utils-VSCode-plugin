@@ -42,7 +42,12 @@ DevUtils brings common developer utilities directly into VS Code via both an **I
    - Deduplicate Lines
    - Text Statistics (Characters, Words, Lines, Byte size)
 
-6. **Color & Web Helpers**
+6. **API & Code Generation Tools**
+   - cURL to Code Converter (JavaScript `fetch` & Python `requests`)
+   - JSON to TypeScript Interface Generator
+   - Cron Expression Explainer & Humanizer
+
+7. **Color & Web Helpers**
    - HEX <-> RGB Converter with live color swatch preview
 
 ---
@@ -145,6 +150,15 @@ DevUtils is designed to work seamlessly without leaving your workflow:
   - CONSTANT_CASE: `USER_REGISTRATION_SERVICE`
   - kebab-case: `user-registration-service`
   - PascalCase: `UserRegistrationService`
+
+#### 6. Convert cURL to Fetch / Python (`DevUtils: cURL: Convert to JavaScript Fetch`)
+* Convert any raw `curl` command into production-ready JavaScript `fetch(...)` or Python `requests.post(...)` without any external tools.
+
+#### 7. JSON to TypeScript Interfaces (`DevUtils: JSON: Generate TypeScript Interfaces`)
+* Select or open any JSON response and generate typed interfaces with recursive child types and clean exports.
+
+#### 8. Cron Expression Humanizer (`DevUtils: Cron: Humanize & Explain Expression`)
+* Turns `*/15 9-17 * * 1-5` into *"Every 15 minutes, between hours 9-17, Monday through Friday"*.
 
 ---
 

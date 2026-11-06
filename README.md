@@ -63,13 +63,88 @@ DevUtils brings common developer utilities directly into VS Code via both an **I
 
 ---
 
-## 🛠️ Usage
+## 🛠️ How to Use & Practical Examples
 
-### 1. Interactive DevUtils Dashboard
-Press `Ctrl+Alt+D` (or `Cmd+Alt+D` on macOS), or run `DevUtils: Open Developer Dashboard` from the Command Palette (`Ctrl+Shift+P`).
+DevUtils is designed to work seamlessly without leaving your workflow:
 
-### 2. Context Menu
-Right click anywhere in an open file or selection and navigate to **DevUtils Toolbox** for quick one-click actions.
+### 3 Quick Ways to Use Any Tool:
+1. **Command Palette**: Press `Ctrl + Shift + P` (or `Cmd + Shift + P`) and type `DevUtils:` to pick any tool.
+2. **Right-Click Context Menu**: Select text, right-click, and choose **DevUtils Toolbox**.
+3. **Interactive Dashboard**: Press `Ctrl + Alt + D` (or `Cmd + Alt + D`) to open the tabbed UI with live preview and "Load Sample" buttons.
+
+---
+
+### 💡 Real-World Examples
+
+#### 1. SQL Query Formatter (`DevUtils: SQL: Format Query`)
+* **Before (messy single-line query)**:
+  ```sql
+  select u.id, u.name, o.total from users u left join orders o on u.id = o.user_id where u.active = 1 and o.status = "complete" order by o.total desc limit 10
+  ```
+* **After running DevUtils**:
+  ```sql
+  SELECT u.id, u.name, o.total
+  FROM users u
+    LEFT JOIN orders o ON u.id = o.user_id
+  WHERE u.active = 1
+    AND o.status = "complete"
+  ORDER BY o.total DESC
+  LIMIT 10
+  ```
+
+#### 2. CSV to JSON Converter (`DevUtils: CSV: Convert CSV to JSON`)
+* **Before (CSV table)**:
+  ```csv
+  id,product,price,in_stock
+  1,VS Code Extension,0.00,true
+  2,Offline Toolbox,0.00,true
+  ```
+* **After running DevUtils**:
+  ```json
+  [
+    {
+      "id": 1,
+      "product": "VS Code Extension",
+      "price": 0,
+      "in_stock": true
+    },
+    {
+      "id": 2,
+      "product": "Offline Toolbox",
+      "price": 0,
+      "in_stock": true
+    }
+  ]
+  ```
+
+#### 3. JSON Prettifier & Minifier (`DevUtils: JSON: Format / Prettify`)
+* **Before (Unformatted JSON string)**:
+  ```json
+  {"name":"Techwasti","tools":["Base64","JSON","SQL","JWT"],"active":true}
+  ```
+* **After running DevUtils Format (`Ctrl + Alt + J` then `F`)**:
+  ```json
+  {
+    "name": "Techwasti",
+    "tools": [
+      "Base64",
+      "JSON",
+      "SQL",
+      "JWT"
+    ],
+    "active": true
+  }
+  ```
+
+#### 4. JWT Inspector (`DevUtils: JWT: Inspect & Decode Token`)
+* Run command and paste any `Bearer` JWT token. DevUtils instantly decodes the **Header** and **Payload claims** into a new formatted JSON editor preview, and alerts you whether the token is currently **Valid** or **Expired**.
+
+#### 5. Case Converters (`DevUtils: Case: Convert to camelCase / snake_case / kebab-case`)
+* Select `user registration service` and convert instantly:
+  - camelCase: `userRegistrationService`
+  - CONSTANT_CASE: `USER_REGISTRATION_SERVICE`
+  - kebab-case: `user-registration-service`
+  - PascalCase: `UserRegistrationService`
 
 ---
 

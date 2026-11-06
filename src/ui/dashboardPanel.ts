@@ -128,6 +128,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-url-decode" onclick="processUrl(false)">URL Decode</button>
       <button class="action-btn" id="btn-hex-encode" onclick="processHex(true)">Hex Encode</button>
       <button class="action-btn" id="btn-hex-decode" onclick="processHex(false)">Hex Decode</button>
+      <button class="sec-btn" id="btn-b64-sample" onclick="loadSample('b64')">Load Sample</button>
       <button class="sec-btn" data-copy="b64-output" onclick="copyOutput('b64-output')">Copy Output</button>
     </div>
     <div class="form-group output-box">
@@ -147,6 +148,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="actions">
       <button class="action-btn" id="btn-json-format" onclick="processJson(true)">Prettify / Format (2 spaces)</button>
       <button class="action-btn" id="btn-json-minify" onclick="processJson(false)">Minify / Compact</button>
+      <button class="sec-btn" id="btn-json-sample" onclick="loadSample('json')">Load Sample</button>
       <button class="sec-btn" data-copy="json-output" onclick="copyOutput('json-output')">Copy Output</button>
     </div>
     <div class="form-group output-box">
@@ -166,6 +168,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="actions">
       <button class="action-btn" id="btn-xml-format" onclick="processXml(true)">Format XML</button>
       <button class="action-btn" id="btn-xml-minify" onclick="processXml(false)">Minify XML</button>
+      <button class="sec-btn" id="btn-xml-sample" onclick="loadSample('xml')">Load Sample</button>
       <button class="sec-btn" data-copy="xml-output" onclick="copyOutput('xml-output')">Copy Output</button>
     </div>
     <div class="form-group output-box">
@@ -183,6 +186,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     </div>
     <div class="actions">
       <button class="action-btn" id="btn-sql-format" onclick="processSql()">Format SQL</button>
+      <button class="sec-btn" id="btn-sql-sample" onclick="loadSample('sql')">Load Sample</button>
       <button class="sec-btn" data-copy="sql-output" onclick="copyOutput('sql-output')">Copy Output</button>
     </div>
     <div class="form-group output-box">
@@ -202,6 +206,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="actions">
       <button class="action-btn" id="btn-csv-to-json" onclick="processCsvToJson()">CSV to JSON</button>
       <button class="action-btn" id="btn-json-to-csv" onclick="processJsonToCsv()">JSON to CSV</button>
+      <button class="sec-btn" id="btn-csv-sample" onclick="loadSample('csv')">Load Sample</button>
       <button class="sec-btn" data-copy="csv-output" onclick="copyOutput('csv-output')">Copy Output</button>
     </div>
     <div class="form-group output-box">
@@ -220,6 +225,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     </div>
     <div class="actions">
       <button class="action-btn" id="btn-jwt-decode" onclick="processJwt()">Inspect & Decode Token</button>
+      <button class="sec-btn" id="btn-jwt-sample" onclick="loadSample('jwt')">Load Sample Token</button>
     </div>
     <div class="grid-2 output-box">
       <div>
@@ -445,6 +451,57 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
           }
         });
       });
+
+      // Sample Data Loader
+      var sampleData = {
+        b64: 'Hello, DevUtils! 🛠️ All-in-one developer toolbox.',
+        json: '{"app":"DevUtils","version":"0.2.1","offline":true,"features":["Base64","JSON","SQL","CSV","JWT"]}',
+        xml: '<project name="DevUtils"><version>0.2.1</version><author><name>Techwasti</name></author></project>',
+        sql: 'select u.id, u.name, u.email from users u inner join orders o on u.id = o.user_id where u.active = 1 and o.status = "completed" order by o.created_at desc limit 20',
+        csv: 'id,product,category,price,in_stock\n101,VS Code Extension,Developer Tools,0.00,true\n102,Offline Dashboard,Utilities,0.00,true\n103,Code Formatter,Productivity,0.00,true',
+        jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlY2h3YXN0aSBEZXZlbG9wZXIiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE5OTk5OTk5OTl9.4S88qTfV2E1W2u0Jd6o2aB3r3k0v_6x7Y8z9A1b2C3D'
+      };
+
+      function loadSample(tool) {
+        if (tool === 'b64') {
+          var el = document.getElementById('b64-input');
+          if (el) { el.value = sampleData.b64; processBase64(true); }
+        } else if (tool === 'json') {
+          var el = document.getElementById('json-input');
+          if (el) { el.value = sampleData.json; processJson(true); }
+        } else if (tool === 'xml') {
+          var el = document.getElementById('xml-input');
+          if (el) { el.value = sampleData.xml; processXml(true); }
+        } else if (tool === 'sql') {
+          var el = document.getElementById('sql-input');
+          if (el) { el.value = sampleData.sql; processSql(); }
+        } else if (tool === 'csv') {
+          var el = document.getElementById('csv-input');
+          if (el) { el.value = sampleData.csv; processCsvToJson(); }
+        } else if (tool === 'jwt') {
+          var el = document.getElementById('jwt-input');
+          if (el) { el.value = sampleData.jwt; processJwt(); }
+        }
+      }
+      window.loadSample = loadSample;
+
+      var btnB64Sample = document.getElementById('btn-b64-sample');
+      if (btnB64Sample) btnB64Sample.addEventListener('click', function() { loadSample('b64'); });
+
+      var btnJsonSample = document.getElementById('btn-json-sample');
+      if (btnJsonSample) btnJsonSample.addEventListener('click', function() { loadSample('json'); });
+
+      var btnXmlSample = document.getElementById('btn-xml-sample');
+      if (btnXmlSample) btnXmlSample.addEventListener('click', function() { loadSample('xml'); });
+
+      var btnSqlSample = document.getElementById('btn-sql-sample');
+      if (btnSqlSample) btnSqlSample.addEventListener('click', function() { loadSample('sql'); });
+
+      var btnCsvSample = document.getElementById('btn-csv-sample');
+      if (btnCsvSample) btnCsvSample.addEventListener('click', function() { loadSample('csv'); });
+
+      var btnJwtSample = document.getElementById('btn-jwt-sample');
+      if (btnJwtSample) btnJwtSample.addEventListener('click', function() { loadSample('jwt'); });
 
       // Base64 & URL
       function processBase64(isEncode) {

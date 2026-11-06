@@ -2,7 +2,7 @@
   "name": "dev-utils-vscode-plugin",
   "displayName": "DevUtils - Developer Utilities",
   "description": "All-in-one offline developer, data & QA toolbox: JSON Flatten/Unflatten, Delimiter Switcher, JSON Query/Filter, Mock Data, Regex Tester, HTTP Reference, Diff Checker, YAML, Encoders, Formatters, and Dashboard.",
-  "version": "0.3.5",
+  "version": "1.0.0",
   "publisher": "TechwastiInfotech",
   "repository": {
     "type": "git",

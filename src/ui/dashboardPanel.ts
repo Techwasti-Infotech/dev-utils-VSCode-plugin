@@ -133,6 +133,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-hex-decode" onclick="processHex(false)">Hex Decode</button>
       <button class="sec-btn" id="btn-b64-sample" onclick="loadSample('b64')">Load Sample</button>
       <button class="sec-btn" data-copy="b64-output" onclick="copyOutput('b64-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="b64-input,b64-output,b64-status">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Output</label>
@@ -153,6 +154,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-json-minify" onclick="processJson(false)">Minify / Compact</button>
       <button class="sec-btn" id="btn-json-sample" onclick="loadSample('json')">Load Sample</button>
       <button class="sec-btn" data-copy="json-output" onclick="copyOutput('json-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="json-input,json-output,json-status">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Formatted Output</label>
@@ -173,6 +175,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-xml-minify" onclick="processXml(false)">Minify XML</button>
       <button class="sec-btn" id="btn-xml-sample" onclick="loadSample('xml')">Load Sample</button>
       <button class="sec-btn" data-copy="xml-output" onclick="copyOutput('xml-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="xml-input,xml-output">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Output</label>
@@ -191,6 +194,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-sql-format" onclick="processSql()">Format SQL</button>
       <button class="sec-btn" id="btn-sql-sample" onclick="loadSample('sql')">Load Sample</button>
       <button class="sec-btn" data-copy="sql-output" onclick="copyOutput('sql-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="sql-input,sql-output,sql-status">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Formatted SQL</label>
@@ -211,6 +215,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-json-to-csv" onclick="processJsonToCsv()">JSON to CSV</button>
       <button class="sec-btn" id="btn-csv-sample" onclick="loadSample('csv')">Load Sample</button>
       <button class="sec-btn" data-copy="csv-output" onclick="copyOutput('csv-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="csv-input,csv-output,csv-status">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Converted Output</label>
@@ -229,6 +234,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="actions">
       <button class="action-btn" id="btn-jwt-decode" onclick="processJwt()">Inspect & Decode Token</button>
       <button class="sec-btn" id="btn-jwt-sample" onclick="loadSample('jwt')">Load Sample Token</button>
+      <button class="sec-btn" data-clear="jwt-input,jwt-header,jwt-payload,jwt-status">Clear</button>
     </div>
     <div class="grid-2 output-box">
       <div>
@@ -251,6 +257,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-uuid-5" onclick="generateUuidBatch(5)">Generate 5 UUIDs</button>
       <button class="action-btn" id="btn-nanoid-5" onclick="generateNanoIdBatch(5)">Generate 5 Nanoids</button>
       <button class="sec-btn" data-copy="uuid-output" onclick="copyOutput('uuid-output')">Copy to Clipboard</button>
+      <button class="sec-btn" data-clear="uuid-output">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Generated IDs</label>
@@ -264,6 +271,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="form-group" style="margin-top: 12px;">
       <label>Input Text</label>
       <textarea id="hash-input" rows="4" placeholder="Enter string to hash..."></textarea>
+    </div>
+    <div class="actions">
+      <button class="sec-btn" data-clear="hash-input,hash-sha256,hash-md5,hash-sha1">Clear</button>
     </div>
     <div class="output-box">
       <div class="form-group">
@@ -286,6 +296,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <h3>Unix Epoch Timestamp Converter</h3>
     <div class="actions" style="margin-top: 12px;">
       <button class="action-btn" id="btn-ts-current" onclick="loadCurrentTime()">Get Current Epoch</button>
+      <button class="sec-btn" data-clear="ts-input,ts-output">Clear</button>
     </div>
     <div class="form-group" style="margin-top: 12px;">
       <label>Timestamp (Seconds or Milliseconds)</label>
@@ -293,6 +304,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     </div>
     <div class="actions">
       <button class="action-btn" id="btn-ts-convert" onclick="processTimestamp()">Convert to Date</button>
+      <button class="sec-btn" data-copy="ts-output" onclick="copyOutput('ts-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="ts-input,ts-output">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>ISO 8601 / UTC / Local Time</label>
@@ -306,6 +319,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="form-group" style="margin-top: 12px;">
       <label>Input Text</label>
       <input type="text" id="case-input" placeholder="hello world developer utilities" />
+    </div>
+    <div class="actions">
+      <button class="sec-btn" data-clear="case-input,case-camel,case-pascal,case-snake,case-kebab,case-constant">Clear</button>
     </div>
     <div class="grid-2 output-box">
       <div class="form-group">
@@ -343,6 +359,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-lines-sort-desc" onclick="processSortLines(true)">Sort Z-A</button>
       <button class="action-btn" id="btn-lines-dedup" onclick="processDeduplicateLines()">Deduplicate Lines</button>
       <button class="sec-btn" data-copy="lines-output" onclick="copyOutput('lines-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="lines-input,lines-output">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Processed Lines</label>
@@ -372,6 +389,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-lorem-3" onclick="generateLorem(3)">3 Paragraphs</button>
       <button class="action-btn" id="btn-lorem-5" onclick="generateLorem(5)">5 Paragraphs</button>
       <button class="sec-btn" data-copy="lorem-output" onclick="copyOutput('lorem-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="lorem-output">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Generated Placeholder Text</label>
@@ -385,6 +403,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="form-group" style="margin-top: 12px;">
       <label>Input Text</label>
       <textarea id="stats-input" rows="6" placeholder="Paste or type text to inspect characters, words, lines, and byte size..."></textarea>
+    </div>
+    <div class="actions">
+      <button class="sec-btn" data-clear="stats-input,stats-chars,stats-words,stats-lines,stats-bytes">Clear</button>
     </div>
     <div class="grid-2 output-box">
       <div class="form-group">
@@ -418,6 +439,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-curl-python" onclick="processCurl('python')">Convert to Python (requests)</button>
       <button class="sec-btn" id="btn-curl-sample" onclick="loadSample('curl')">Load Sample</button>
       <button class="sec-btn" data-copy="curl-output" onclick="copyOutput('curl-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="curl-input,curl-output,curl-status">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Generated Code</label>
@@ -437,6 +459,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-ts-generate" onclick="processJsonToTs()">Generate Interfaces</button>
       <button class="sec-btn" id="btn-ts-sample" onclick="loadSample('ts')">Load Sample</button>
       <button class="sec-btn" data-copy="ts-output" onclick="copyOutput('ts-output')">Copy Interfaces</button>
+      <button class="sec-btn" data-clear="ts-input,ts-output,ts-status">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>TypeScript Interfaces</label>
@@ -455,6 +478,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="actions">
       <button class="action-btn" id="btn-cron-explain" onclick="processCron()">Explain Expression</button>
       <button class="sec-btn" id="btn-cron-sample" onclick="loadSample('cron')">Load Sample</button>
+      <button class="sec-btn" data-clear="cron-input,cron-output,cron-status">Clear</button>
     </div>
     <div class="form-group output-box">
       <label>Human Readable Meaning</label>
@@ -508,6 +532,41 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
           var targetId = btn.getAttribute('data-copy');
           if (targetId) {
             copyOutput(targetId);
+          }
+        });
+      });
+
+      // Clear fields helper
+      function clearFields(targetIds) {
+        var ids = targetIds.split(',');
+        for (var i = 0; i < ids.length; i++) {
+          var id = ids[i].trim();
+          var el = document.getElementById(id);
+          if (el) {
+            if ('value' in el) {
+              el.value = '';
+            }
+            if (el.textContent && !('value' in el)) {
+              el.textContent = '';
+            }
+            if (el.className && el.className.indexOf('status-msg') !== -1) {
+              el.textContent = '';
+              el.className = 'status-msg';
+            }
+          }
+        }
+        var firstEl = document.getElementById(ids[0].trim());
+        if (firstEl && typeof firstEl.focus === 'function') {
+          firstEl.focus();
+        }
+      }
+      window.clearFields = clearFields;
+
+      document.querySelectorAll('[data-clear]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var targets = btn.getAttribute('data-clear');
+          if (targets) {
+            clearFields(targets);
           }
         });
       });

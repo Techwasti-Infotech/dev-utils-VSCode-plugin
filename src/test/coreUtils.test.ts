@@ -30,7 +30,10 @@ import {
   countTextStats,
   hexToRgb,
   rgbToHex,
-  generateLoremIpsum
+  generateLoremIpsum,
+  formatSql,
+  csvToJson,
+  jsonToCsv
 } from '../utils/coreUtils';
 
 test('Base64 encoding and decoding', () => {
@@ -152,4 +155,27 @@ test('Case converters transform text formats properly', () => {
   assert.strictEqual(toKebabCase(text), 'hello-world-dev-utils');
   assert.strictEqual(toConstantCase(text), 'HELLO_WORLD_DEV_UTILS');
   assert.strictEqual(toTitleCase(text), 'Hello World Dev Utils');
+});
+
+test('SQL Formatter formats query statements', () => {
+  const query = 'select id, name from users where age > 18 and active = 1 order by name';
+  const formatted = formatSql(query);
+  assert.ok(formatted.includes('SELECT id, name'));
+  assert.ok(formatted.includes('FROM users'));
+  assert.ok(formatted.includes('WHERE age > 18'));
+  assert.ok(formatted.includes('  AND active = 1'));
+  assert.ok(formatted.includes('ORDER BY name'));
+});
+
+test('CSV to JSON and JSON to CSV conversion', () => {
+  const csv = 'name,role,active\nTechwasti,Admin,true\nDeveloper,User,false';
+  const jsonStr = csvToJson(csv);
+  const parsed = JSON.parse(jsonStr);
+  assert.strictEqual(parsed.length, 2);
+  assert.strictEqual(parsed[0].name, 'Techwasti');
+  assert.strictEqual(parsed[0].active, true);
+
+  const backToCsv = jsonToCsv(jsonStr);
+  assert.strictEqual(backToCsv.split('\n')[0], 'name,role,active');
+  assert.ok(backToCsv.includes('Techwasti,Admin,true'));
 });

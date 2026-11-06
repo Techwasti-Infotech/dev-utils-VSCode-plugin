@@ -329,3 +329,91 @@ export function generateLoremIpsum(paragraphs: number = 1): string {
   }
   return result.join('\n\n');
 }
+
+/**
+ * SQL Formatter
+ */
+export function formatSql(sql: string): string {
+  const keywords = [
+    'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'HAVING',
+    'LIMIT', 'OFFSET', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN',
+    'INSERT INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE FROM', 'CREATE TABLE', 'DROP TABLE',
+    'ALTER TABLE', 'UNION', 'UNION ALL'
+  ];
+
+  let cleaned = sql.replace(/\s+/g, ' ').trim();
+  for (const kw of keywords) {
+    const regex = new RegExp(`\\b${kw}\\b`, 'gi');
+    cleaned = cleaned.replace(regex, `\n${kw.toUpperCase()}`);
+  }
+
+  const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
+  let indent = 0;
+  const formattedLines: string[] = [];
+
+  for (const line of lines) {
+    if (line.startsWith('SELECT') || line.startsWith('INSERT') || line.startsWith('UPDATE') || line.startsWith('DELETE') || line.startsWith('CREATE')) {
+      indent = 0;
+    } else if (line.startsWith('FROM') || line.startsWith('WHERE') || line.startsWith('ORDER BY') || line.startsWith('GROUP BY') || line.startsWith('HAVING') || line.startsWith('SET') || line.startsWith('VALUES')) {
+      indent = 0;
+    } else if (line.startsWith('AND') || line.startsWith('OR') || line.includes('JOIN')) {
+      indent = 1;
+    }
+    formattedLines.push('  '.repeat(indent) + line);
+  }
+
+  return formattedLines.join('\n').trim();
+}
+
+/**
+ * CSV <-> JSON Converter
+ */
+export function csvToJson(csv: string): string {
+  const lines = csv.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) return '[]';
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+  const result: Record<string, any>[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const current = lines[i].split(',').map(val => val.trim().replace(/^["']|["']$/g, ''));
+    const obj: Record<string, any> = {};
+    for (let j = 0; j < headers.length; j++) {
+      let val: any = current[j] ?? '';
+      if (!isNaN(Number(val)) && val !== '') {
+        val = Number(val);
+      } else if (val.toLowerCase() === 'true') {
+        val = true;
+      } else if (val.toLowerCase() === 'false') {
+        val = false;
+      }
+      obj[headers[j]] = val;
+    }
+    result.push(obj);
+  }
+  return JSON.stringify(result, null, 2);
+}
+
+export function jsonToCsv(jsonStr: string): string {
+  const data = JSON.parse(jsonStr);
+  const arr = Array.isArray(data) ? data : [data];
+  if (arr.length === 0) return '';
+  const headers = Object.keys(arr[0]);
+  const rows = [headers.join(',')];
+
+  for (const item of arr) {
+    const row = headers.map(header => {
+      let val = item[header] ?? '';
+      if (typeof val === 'object' && val !== null) {
+        val = JSON.stringify(val);
+      }
+      val = String(val);
+      if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+        val = `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    });
+    rows.push(row.join(','));
+  }
+  return rows.join('\n');
+}
+

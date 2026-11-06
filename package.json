@@ -113,6 +113,21 @@
         "category": "DevUtils"
       },
       {
+        "command": "devutils.sqlFormat",
+        "title": "SQL: Format Query",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.csvToJson",
+        "title": "CSV: Convert CSV to JSON",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.jsonToCsv",
+        "title": "JSON: Convert JSON to CSV",
+        "category": "DevUtils"
+      },
+      {
         "command": "devutils.jwtDecode",
         "title": "JWT: Inspect & Decode Token",
         "category": "DevUtils"
@@ -274,6 +289,15 @@
         },
         {
           "command": "devutils.xmlFormat"
+        },
+        {
+          "command": "devutils.sqlFormat"
+        },
+        {
+          "command": "devutils.csvToJson"
+        },
+        {
+          "command": "devutils.jsonToCsv"
         },
         {
           "command": "devutils.jwtDecode"

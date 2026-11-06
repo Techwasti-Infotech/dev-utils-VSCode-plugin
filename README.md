@@ -23,7 +23,8 @@ DevUtils brings common developer utilities directly into VS Code via both an **I
 2. **Formatters & Beautifiers**
    - JSON Formatter & Minifier with syntax validation
    - XML Formatter & Minifier
-   - YAML / Text formatting helpers
+   - SQL Query Formatter (keywords uppercase, clauses formatted)
+   - CSV ⇄ JSON bidirectional converter
 
 3. **Generators & Identifiers**
    - UUID / GUID Generator (RFC 4122 v4)

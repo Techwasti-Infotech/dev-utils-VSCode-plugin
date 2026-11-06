@@ -101,6 +101,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <button class="tab-btn active" data-tab="base64" onclick="switchTab('base64')">Base64</button>
     <button class="tab-btn" data-tab="json" onclick="switchTab('json')">JSON Formatter</button>
     <button class="tab-btn" data-tab="xml" onclick="switchTab('xml')">XML Formatter</button>
+    <button class="tab-btn" data-tab="sql" onclick="switchTab('sql')">SQL Formatter</button>
+    <button class="tab-btn" data-tab="csv" onclick="switchTab('csv')">CSV ⇄ JSON</button>
     <button class="tab-btn" data-tab="jwt" onclick="switchTab('jwt')">JWT Inspector</button>
     <button class="tab-btn" data-tab="uuid" onclick="switchTab('uuid')">UUID / Nanoid</button>
     <button class="tab-btn" data-tab="hash" onclick="switchTab('hash')">Hash Checksum</button>
@@ -108,6 +110,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <button class="tab-btn" data-tab="case" onclick="switchTab('case')">Case Converter</button>
     <button class="tab-btn" data-tab="lines" onclick="switchTab('lines')">Line Tools</button>
     <button class="tab-btn" data-tab="color" onclick="switchTab('color')">Color Picker</button>
+    <button class="tab-btn" data-tab="lorem" onclick="switchTab('lorem')">Lorem Ipsum</button>
+    <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Text Statistics</button>
   </div>
 
   <!-- Base64 Panel -->
@@ -122,6 +126,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       <button class="action-btn" id="btn-b64-decode" onclick="processBase64(false)">Base64 Decode</button>
       <button class="action-btn" id="btn-url-encode" onclick="processUrl(true)">URL Encode</button>
       <button class="action-btn" id="btn-url-decode" onclick="processUrl(false)">URL Decode</button>
+      <button class="action-btn" id="btn-hex-encode" onclick="processHex(true)">Hex Encode</button>
+      <button class="action-btn" id="btn-hex-decode" onclick="processHex(false)">Hex Decode</button>
       <button class="sec-btn" data-copy="b64-output" onclick="copyOutput('b64-output')">Copy Output</button>
     </div>
     <div class="form-group output-box">
@@ -165,6 +171,43 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div class="form-group output-box">
       <label>Output</label>
       <textarea id="xml-output" rows="6" readonly></textarea>
+    </div>
+  </div>
+
+  <!-- SQL Panel -->
+  <div id="panel-sql" class="tool-panel">
+    <h3>SQL Query Formatter</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>SQL Query</label>
+      <textarea id="sql-input" rows="6" placeholder="SELECT u.id, u.name FROM users u WHERE u.active = 1 ORDER BY u.name ASC"></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-sql-format" onclick="processSql()">Format SQL</button>
+      <button class="sec-btn" data-copy="sql-output" onclick="copyOutput('sql-output')">Copy Output</button>
+    </div>
+    <div class="form-group output-box">
+      <label>Formatted SQL</label>
+      <textarea id="sql-output" rows="6" readonly></textarea>
+      <div id="sql-status" class="status-msg"></div>
+    </div>
+  </div>
+
+  <!-- CSV Panel -->
+  <div id="panel-csv" class="tool-panel">
+    <h3>CSV ⇄ JSON Converter</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>Input (CSV or JSON string)</label>
+      <textarea id="csv-input" rows="6" placeholder="id,name,role&#10;1,Techwasti,Admin"></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-csv-to-json" onclick="processCsvToJson()">CSV to JSON</button>
+      <button class="action-btn" id="btn-json-to-csv" onclick="processJsonToCsv()">JSON to CSV</button>
+      <button class="sec-btn" data-copy="csv-output" onclick="copyOutput('csv-output')">Copy Output</button>
+    </div>
+    <div class="form-group output-box">
+      <label>Converted Output</label>
+      <textarea id="csv-output" rows="6" readonly></textarea>
+      <div id="csv-status" class="status-msg"></div>
     </div>
   </div>
 
@@ -312,6 +355,48 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <div id="color-preview" style="height: 60px; border-radius: 4px; border: 1px solid var(--border); margin-top: 10px; background-color: #2563eb;"></div>
   </div>
 
+  <!-- Lorem Ipsum Panel -->
+  <div id="panel-lorem" class="tool-panel">
+    <h3>Lorem Ipsum Text Generator</h3>
+    <div class="actions" style="margin-top: 12px;">
+      <button class="action-btn" id="btn-lorem-1" onclick="generateLorem(1)">1 Paragraph</button>
+      <button class="action-btn" id="btn-lorem-3" onclick="generateLorem(3)">3 Paragraphs</button>
+      <button class="action-btn" id="btn-lorem-5" onclick="generateLorem(5)">5 Paragraphs</button>
+      <button class="sec-btn" data-copy="lorem-output" onclick="copyOutput('lorem-output')">Copy Output</button>
+    </div>
+    <div class="form-group output-box">
+      <label>Generated Placeholder Text</label>
+      <textarea id="lorem-output" rows="8" readonly></textarea>
+    </div>
+  </div>
+
+  <!-- Text Statistics Panel -->
+  <div id="panel-stats" class="tool-panel">
+    <h3>Text Statistics Analyzer</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>Input Text</label>
+      <textarea id="stats-input" rows="6" placeholder="Paste or type text to inspect characters, words, lines, and byte size..."></textarea>
+    </div>
+    <div class="grid-2 output-box">
+      <div class="form-group">
+        <label>Characters</label>
+        <input type="text" id="stats-chars" readonly value="0" />
+      </div>
+      <div class="form-group">
+        <label>Words</label>
+        <input type="text" id="stats-words" readonly value="0" />
+      </div>
+      <div class="form-group">
+        <label>Lines</label>
+        <input type="text" id="stats-lines" readonly value="0" />
+      </div>
+      <div class="form-group">
+        <label>Bytes (UTF-8)</label>
+        <input type="text" id="stats-bytes" readonly value="0" />
+      </div>
+    </div>
+  </div>
+
   <script nonce="${nonce}">
     (function() {
       // Tab switching
@@ -402,6 +487,45 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       var btnUrlDec = document.getElementById('btn-url-decode');
       if (btnUrlDec) btnUrlDec.addEventListener('click', function() { processUrl(false); });
 
+      function processHex(isEncode) {
+        var inputEl = document.getElementById('b64-input');
+        var outputEl = document.getElementById('b64-output');
+        var status = document.getElementById('b64-status');
+        var val = inputEl ? inputEl.value : '';
+        try {
+          if (isEncode) {
+            var enc = new TextEncoder();
+            var bytes = enc.encode(val);
+            var hex = '';
+            for (var i = 0; i < bytes.length; i++) {
+              hex += bytes[i].toString(16).padStart(2, '0');
+            }
+            outputEl.value = hex;
+          } else {
+            var cleanHex = val.trim().replace(/\s+/g, '');
+            if (cleanHex.length % 2 !== 0) throw new Error('Hex string must have an even number of characters');
+            var bytesArr = [];
+            for (var h = 0; h < cleanHex.length; h += 2) {
+              bytesArr.push(parseInt(cleanHex.substring(h, h + 2), 16));
+            }
+            var dec = new TextDecoder();
+            outputEl.value = dec.decode(new Uint8Array(bytesArr));
+          }
+          status.textContent = 'Success!';
+          status.className = 'status-msg success';
+        } catch (e) {
+          status.textContent = 'Error: ' + e.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processHex = processHex;
+
+      var btnHexEnc = document.getElementById('btn-hex-encode');
+      if (btnHexEnc) btnHexEnc.addEventListener('click', function() { processHex(true); });
+
+      var btnHexDec = document.getElementById('btn-hex-decode');
+      if (btnHexDec) btnHexDec.addEventListener('click', function() { processHex(false); });
+
       // JSON Formatter & Minifier
       function processJson(prettify) {
         var inputEl = document.getElementById('json-input');
@@ -462,6 +586,137 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
 
       var btnXmlMin = document.getElementById('btn-xml-minify');
       if (btnXmlMin) btnXmlMin.addEventListener('click', function() { processXml(false); });
+
+      // SQL Formatter
+      function processSql() {
+        var inputEl = document.getElementById('sql-input');
+        var outputEl = document.getElementById('sql-output');
+        var status = document.getElementById('sql-status');
+        var sql = inputEl ? inputEl.value : '';
+        if (!sql.trim()) {
+          outputEl.value = '';
+          return;
+        }
+        try {
+          var keywords = [
+            'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'HAVING',
+            'LIMIT', 'OFFSET', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN',
+            'INSERT INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE FROM', 'CREATE TABLE', 'DROP TABLE',
+            'ALTER TABLE', 'UNION', 'UNION ALL'
+          ];
+          var cleaned = sql.replace(/\s+/g, ' ').trim();
+          for (var k = 0; k < keywords.length; k++) {
+            var kw = keywords[k];
+            var regex = new RegExp('\\\\b' + kw + '\\\\b', 'gi');
+            cleaned = cleaned.replace(regex, '\\n' + kw);
+          }
+          var lines = cleaned.split('\\n').map(function(l) { return l.trim(); }).filter(Boolean);
+          var indent = 0;
+          var formatted = [];
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (line.match(/^(SELECT|INSERT|UPDATE|DELETE|CREATE|FROM|WHERE|ORDER BY|GROUP BY|HAVING|SET|VALUES)/i)) {
+              indent = 0;
+            } else if (line.match(/^(AND|OR|JOIN|LEFT JOIN|RIGHT JOIN|INNER JOIN)/i)) {
+              indent = 1;
+            }
+            formatted.push('  '.repeat(indent) + line);
+          }
+          outputEl.value = formatted.join('\\n').trim();
+          status.textContent = 'Formatted SQL successfully!';
+          status.className = 'status-msg success';
+        } catch (e) {
+          status.textContent = 'Error: ' + e.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processSql = processSql;
+
+      var btnSqlFmt = document.getElementById('btn-sql-format');
+      if (btnSqlFmt) btnSqlFmt.addEventListener('click', processSql);
+
+      // CSV <-> JSON Converter
+      function processCsvToJson() {
+        var inputEl = document.getElementById('csv-input');
+        var outputEl = document.getElementById('csv-output');
+        var status = document.getElementById('csv-status');
+        var val = inputEl ? inputEl.value.trim() : '';
+        try {
+          var lines = val.split(/\r?\n/).filter(Boolean);
+          if (lines.length === 0) {
+            outputEl.value = '[]';
+            return;
+          }
+          var headers = lines[0].split(',').map(function(h) { return h.trim().replace(/^["']|["']$/g, ''); });
+          var list = [];
+          for (var i = 1; i < lines.length; i++) {
+            var parts = lines[i].split(',').map(function(item) { return item.trim().replace(/^["']|["']$/g, ''); });
+            var obj = {};
+            for (var j = 0; j < headers.length; j++) {
+              var v = parts[j] !== undefined ? parts[j] : '';
+              if (!isNaN(Number(v)) && v !== '') {
+                v = Number(v);
+              } else if (v.toLowerCase() === 'true') {
+                v = true;
+              } else if (v.toLowerCase() === 'false') {
+                v = false;
+              }
+              obj[headers[j]] = v;
+            }
+            list.push(obj);
+          }
+          outputEl.value = JSON.stringify(list, null, 2);
+          status.textContent = 'Converted CSV to JSON successfully!';
+          status.className = 'status-msg success';
+        } catch (e) {
+          status.textContent = 'Error converting CSV: ' + e.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processCsvToJson = processCsvToJson;
+
+      function processJsonToCsv() {
+        var inputEl = document.getElementById('csv-input');
+        var outputEl = document.getElementById('csv-output');
+        var status = document.getElementById('csv-status');
+        var val = inputEl ? inputEl.value.trim() : '';
+        try {
+          var data = JSON.parse(val);
+          var arr = Array.isArray(data) ? data : [data];
+          if (arr.length === 0) {
+            outputEl.value = '';
+            return;
+          }
+          var headers = Object.keys(arr[0]);
+          var rows = [headers.join(',')];
+          for (var i = 0; i < arr.length; i++) {
+            var item = arr[i];
+            var row = headers.map(function(h) {
+              var v = item[h] !== undefined ? item[h] : '';
+              if (typeof v === 'object' && v !== null) v = JSON.stringify(v);
+              v = String(v);
+              if (v.indexOf(',') !== -1 || v.indexOf('"') !== -1 || v.indexOf('\n') !== -1) {
+                v = '"' + v.replace(/"/g, '""') + '"';
+              }
+              return v;
+            });
+            rows.push(row.join(','));
+          }
+          outputEl.value = rows.join('\n');
+          status.textContent = 'Converted JSON to CSV successfully!';
+          status.className = 'status-msg success';
+        } catch (e) {
+          status.textContent = 'Error converting JSON to CSV: ' + e.message;
+          status.className = 'status-msg error';
+        }
+      }
+      window.processJsonToCsv = processJsonToCsv;
+
+      var btnCsv2Json = document.getElementById('btn-csv-to-json');
+      if (btnCsv2Json) btnCsv2Json.addEventListener('click', processCsvToJson);
+
+      var btnJson2Csv = document.getElementById('btn-json-to-csv');
+      if (btnJson2Csv) btnJson2Csv.addEventListener('click', processJsonToCsv);
 
       // JWT Inspector
       function processJwt() {
@@ -673,6 +928,56 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             document.getElementById('hash-md5').value = '(Available via Command Palette MD5 command)';
           } catch (err) {
           }
+        });
+      }
+
+      // Lorem Ipsum Generator
+      var loremPhrases = [
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+        'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+        'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+        'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+        'Curabitur pretium tincidunt lacus nulla gravida orci a odio tempus dictum.',
+        'Maecenas tristique orci ac sem duis ultricies pharetra magna donec accumsan malesuada.'
+      ];
+
+      function generateLorem(paragraphs) {
+        var result = [];
+        for (var p = 0; p < paragraphs; p++) {
+          var count = 3 + (p % 3);
+          var sent = [];
+          for (var i = 0; i < count; i++) {
+            sent.push(loremPhrases[(p * 2 + i) % loremPhrases.length]);
+          }
+          result.push(sent.join(' '));
+        }
+        document.getElementById('lorem-output').value = result.join('\n\n');
+      }
+      window.generateLorem = generateLorem;
+
+      var btnLorem1 = document.getElementById('btn-lorem-1');
+      if (btnLorem1) btnLorem1.addEventListener('click', function() { generateLorem(1); });
+
+      var btnLorem3 = document.getElementById('btn-lorem-3');
+      if (btnLorem3) btnLorem3.addEventListener('click', function() { generateLorem(3); });
+
+      var btnLorem5 = document.getElementById('btn-lorem-5');
+      if (btnLorem5) btnLorem5.addEventListener('click', function() { generateLorem(5); });
+
+      // Text Statistics Analyzer
+      var statsInput = document.getElementById('stats-input');
+      if (statsInput) {
+        statsInput.addEventListener('input', function(e) {
+          var val = e.target.value;
+          var chars = val.length;
+          var words = val.trim() ? val.trim().split(/\s+/).length : 0;
+          var lines = val ? val.split(/\r?\n/).length : 0;
+          var bytes = new TextEncoder().encode(val).length;
+          document.getElementById('stats-chars').value = chars;
+          document.getElementById('stats-words').value = words;
+          document.getElementById('stats-lines').value = lines;
+          document.getElementById('stats-bytes').value = bytes;
         });
       }
     })();

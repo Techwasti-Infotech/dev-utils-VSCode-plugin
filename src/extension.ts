@@ -30,7 +30,10 @@ import {
   countTextStats,
   hexToRgb,
   rgbToHex,
-  generateLoremIpsum
+  generateLoremIpsum,
+  formatSql,
+  csvToJson,
+  jsonToCsv
 } from './utils/coreUtils';
 
 /**
@@ -145,6 +148,15 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     vscode.commands.registerCommand('devutils.xmlMinify', () => {
       transformSelection(minifyXml, 'XML Minify Error');
+    }),
+    vscode.commands.registerCommand('devutils.sqlFormat', () => {
+      transformSelection(formatSql, 'SQL Format Error');
+    }),
+    vscode.commands.registerCommand('devutils.csvToJson', () => {
+      transformSelection(csvToJson, 'CSV to JSON Error');
+    }),
+    vscode.commands.registerCommand('devutils.jsonToCsv', () => {
+      transformSelection(jsonToCsv, 'JSON to CSV Error');
     })
   );
 

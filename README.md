@@ -57,7 +57,12 @@ DevUtils brings common developer utilities directly into VS Code via both an **I
    - JSON to TypeScript Interface Generator
    - Cron Expression Explainer & Humanizer
 
-8. **Color & Web Helpers**
+8. **QA & Tester Utilities**
+   - Mock Test Data Generator (Users, Products, Orders in JSON or CSV)
+   - Regular Expression Tester & Explainer with captured groups and pattern presets
+   - HTTP Status Code & API Header Reference with QA verification test checklists
+
+9. **Color & Web Helpers**
    - HEX <-> RGB Converter with live color swatch preview
 
 ---
@@ -193,6 +198,20 @@ DevUtils is designed to work seamlessly without leaving your workflow:
 #### 11. Difference Checker (Dashboard & Native Diff Viewer)
 * **Webview Dashboard Diff**: Compare two pieces of text, JSON documents, or YAML configurations directly side-by-side with color highlighting (`diff-added` and `diff-removed`) and summary addition/deletion statistics.
 * **Native VS Code Diff Viewer (`DevUtils: Diff: Open VS Code Diff Viewer`)**: Launches VS Code's rich native diff editor comparison tabs for two input texts with custom language modes (e.g. `json`, `yaml`, `javascript`, or plaintext).
+
+#### 12. Mock Test Data Generator (`DevUtils: QA: Generate Mock Data`)
+* Generate realistic mock datasets for testing in **JSON Array** or **CSV** format. Choose from schemas:
+  - **Users**: Realistic names, emails, phones, roles (`ADMIN`, `USER`), and cities.
+  - **Products**: E-commerce catalog items with categories, prices, ratings, and SKUs.
+  - **Orders / Transactions**: Order IDs, totals, currencies, and payment methods.
+
+#### 13. Regular Expression Tester (`DevUtils: QA: Test Regular Expression`)
+* Live test regex patterns with flags (`g`, `i`, `m`) directly against test text.
+* Displays match counts, exact match indices, and all captured groups (`Group 1`, `Group 2`, etc.).
+* Includes 1-click presets for common validation checks: Email, URL, IPv4, UUID v4, Strong Password, Phone, ISO Date, and Hex Color.
+
+#### 14. HTTP Status Code & API Header Reference (`DevUtils: QA: Lookup HTTP Status Code & Header`)
+* Instant lookup across 1xx, 2xx, 3xx, 4xx, and 5xx status codes with official RFC definitions and **QA Verification Tips** (e.g. what headers to assert, response body checks, and edge cases to test).
 
 ---
 

@@ -128,6 +128,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <button class="tab-btn" data-tab="curl" onclick="switchTab('curl')">cURL Converter</button>
     <button class="tab-btn" data-tab="ts" onclick="switchTab('ts')">JSON ➔ TS</button>
     <button class="tab-btn" data-tab="cron" onclick="switchTab('cron')">Cron Explainer</button>
+    <button class="tab-btn" data-tab="mockdata" onclick="switchTab('mockdata')">Mock Data (QA)</button>
+    <button class="tab-btn" data-tab="regex" onclick="switchTab('regex')">Regex Tester</button>
+    <button class="tab-btn" data-tab="http" onclick="switchTab('http')">HTTP Status & QA</button>
   </div>
 
   <!-- Base64 Panel -->
@@ -556,6 +559,116 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     </div>
   </div>
 
+  <!-- Mock Data Generator Panel -->
+  <div id="panel-mockdata" class="tool-panel">
+    <h3>Mock Test Data Generator (for Dev & QA Testing)</h3>
+    <div class="grid-2" style="margin-top: 12px;">
+      <div class="form-group">
+        <label>Schema / Dataset</label>
+        <select id="mock-schema" style="width: 100%; background: var(--input-bg); color: var(--input-fg); border: 1px solid var(--border); border-radius: 4px; padding: 10px;">
+          <option value="users">Users (Names, Emails, Phones, Roles, Cities)</option>
+          <option value="products">Products (E-commerce, SKUs, Categories, Prices, Ratings)</option>
+          <option value="orders">Orders (Transactions, Totals, Currencies, Payment Methods)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Record Count</label>
+        <select id="mock-count" style="width: 100%; background: var(--input-bg); color: var(--input-fg); border: 1px solid var(--border); border-radius: 4px; padding: 10px;">
+          <option value="1">1 record</option>
+          <option value="5" selected>5 records</option>
+          <option value="10">10 records</option>
+          <option value="25">25 records</option>
+          <option value="50">50 records</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-mock-json" onclick="processMockData('json')">Generate JSON Array</button>
+      <button class="action-btn" id="btn-mock-csv" onclick="processMockData('csv')">Generate CSV</button>
+      <button class="sec-btn" id="btn-mock-sample" onclick="loadSample('mockdata')">Load Sample</button>
+      <button class="sec-btn" data-copy="mock-output" onclick="copyOutput('mock-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="mock-output,mock-status">Clear</button>
+    </div>
+    <div class="form-group output-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="margin-bottom: 0;">Generated Mock Dataset</label>
+        <div id="mock-status" class="status-msg" style="margin-top: 0;"></div>
+      </div>
+      <textarea id="mock-output" rows="10" readonly placeholder="Click Generate to produce mock records..."></textarea>
+    </div>
+  </div>
+
+  <!-- Regex Tester Panel -->
+  <div id="panel-regex" class="tool-panel">
+    <h3>Regular Expression Tester & Explainer</h3>
+    <div class="grid-2" style="margin-top: 12px;">
+      <div class="form-group">
+        <label>Common Regex Presets (Click to Load)</label>
+        <select id="regex-preset-select" onchange="loadRegexPreset()" style="width: 100%; background: var(--input-bg); color: var(--input-fg); border: 1px solid var(--border); border-radius: 4px; padding: 10px;">
+          <option value="">-- Choose Regex Pattern Preset --</option>
+          <option value="email">Email Address</option>
+          <option value="url">URL (HTTP/HTTPS)</option>
+          <option value="ipv4">IPv4 Address</option>
+          <option value="uuid">UUID v4</option>
+          <option value="isoDate">ISO Date (YYYY-MM-DD)</option>
+          <option value="hexColor">Hex Color (#RGB / #RRGGBB)</option>
+          <option value="strongPassword">Strong Password Policy</option>
+          <option value="phoneUs">US/International Phone</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Regex Flags (e.g. g, i, m, s, u)</label>
+        <input type="text" id="regex-flags" value="g" placeholder="g, i, m..." oninput="processRegexTest()" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Regular Expression Pattern</label>
+      <input type="text" id="regex-pattern" placeholder="e.g. ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" oninput="processRegexTest()" />
+    </div>
+    <div class="form-group">
+      <label>Test String / Sample Content</label>
+      <textarea id="regex-text" rows="5" placeholder="Paste test content to evaluate matches and group captures..." oninput="processRegexTest()"></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-regex-test" onclick="processRegexTest()">Test Regex</button>
+      <button class="sec-btn" id="btn-regex-sample" onclick="loadSample('regex')">Load Sample</button>
+      <button class="sec-btn" data-clear="regex-pattern,regex-text,regex-output,regex-status">Clear</button>
+    </div>
+    <div class="form-group output-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="margin-bottom: 0;">Match Results & Group Captures</label>
+        <div id="regex-status" class="status-msg" style="margin-top: 0;"></div>
+      </div>
+      <div id="regex-output" class="diff-view" style="min-height: 80px; max-height: 250px; overflow-y: auto;"></div>
+    </div>
+  </div>
+
+  <!-- HTTP Status & QA Reference Panel -->
+  <div id="panel-http" class="tool-panel">
+    <h3>HTTP Status Code & API QA Reference</h3>
+    <div class="grid-2" style="margin-top: 12px;">
+      <div class="form-group">
+        <label>Search Status Code, Phrase, or Keyword</label>
+        <input type="text" id="http-search" placeholder="Type 200, 401, 404, 500, Unauthorized, Gateway..." oninput="filterHttpStatuses()" />
+      </div>
+      <div class="form-group">
+        <label>Filter by Category</label>
+        <select id="http-filter-cat" onchange="filterHttpStatuses()" style="width: 100%; background: var(--input-bg); color: var(--input-fg); border: 1px solid var(--border); border-radius: 4px; padding: 10px;">
+          <option value="ALL">All Categories (1xx - 5xx)</option>
+          <option value="1xx">1xx Informational</option>
+          <option value="2xx">2xx Successful</option>
+          <option value="3xx">3xx Redirection</option>
+          <option value="4xx">4xx Client Error</option>
+          <option value="5xx">5xx Server Error</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group output-box">
+      <label>HTTP Status Codes & QA Verification Checklist</label>
+      <div id="http-cards" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+  </div>
+
   <script nonce="${nonce}">
     (function() {
       // Tab switching
@@ -653,7 +766,10 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         cron: '*/15 9-17 * * 1-5',
         yaml: 'server:\\n  port: 8080\\n  host: 0.0.0.0\\nspring:\\n  application:\\n    name: dev-utils-service\\n  datasource:\\n    url: jdbc:postgresql://localhost:5432/devdb\\n    username: postgres\\n    pool:\\n      max-size: 20\\n      active: true',
         diffA: '{\\n  "name": "dev-utils",\\n  "version": "0.3.1",\\n  "offline": true,\\n  "status": "beta"\\n}',
-        diffB: '{\\n  "name": "dev-utils",\\n  "version": "0.3.3",\\n  "offline": true,\\n  "status": "stable",\\n  "license": "MIT"\\n}'
+        diffB: '{\\n  "name": "dev-utils",\\n  "version": "0.3.3",\\n  "offline": true,\\n  "status": "stable",\\n  "license": "MIT"\\n}',
+        regexPattern: '([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        regexFlags: 'g',
+        regexText: 'Contact support at help@techwasti.com or billing@example.org for assistance.'
       };
 
       function loadSample(tool) {
@@ -695,6 +811,20 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             elB.value = sampleData.diffB;
             processDiff('json');
           }
+        } else if (tool === 'mockdata') {
+          var schemaEl = document.getElementById('mock-schema');
+          var countEl = document.getElementById('mock-count');
+          if (schemaEl) schemaEl.value = 'users';
+          if (countEl) countEl.value = '5';
+          processMockData('json');
+        } else if (tool === 'regex') {
+          var patEl = document.getElementById('regex-pattern');
+          var flagsEl = document.getElementById('regex-flags');
+          var textEl = document.getElementById('regex-text');
+          if (patEl) patEl.value = sampleData.regexPattern;
+          if (flagsEl) flagsEl.value = sampleData.regexFlags;
+          if (textEl) textEl.value = sampleData.regexText;
+          processRegexTest();
         }
       }
       window.loadSample = loadSample;
@@ -1834,6 +1964,276 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         }
       }
       window.processDiff = processDiff;
+
+      // ==========================================
+      // Mock Data Generator (QA & Dev)
+      // ==========================================
+      var FIRST_NAMES = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Sam', 'Chris', 'Pat', 'Riley', 'Avery', 'Devin', 'Logan'];
+      var LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+      var CITIES = ['New York', 'San Francisco', 'London', 'Berlin', 'Tokyo', 'Sydney', 'Toronto', 'Singapore', 'Paris', 'Mumbai'];
+      var DOMAINS = ['example.com', 'testmail.org', 'techwasti.com', 'company.io', 'qa-staging.net'];
+      var PRODUCT_NAMES = ['Wireless Headphones', 'Mechanical Keyboard', '4K Monitor', 'USB-C Dock', 'Ergonomic Chair', 'Laptop Stand', 'Webcam HD', 'Smartwatch Pro'];
+      var CATEGORIES = ['Electronics', 'Accessories', 'Office Furniture', 'Peripherals'];
+      var STATUSES = ['PENDING', 'COMPLETED', 'SHIPPED', 'CANCELLED', 'REFUNDED'];
+
+      function randChoice(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+      function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function generateMockRecords(schema, count) {
+        var records = [];
+        for (var i = 1; i <= count; i++) {
+          if (schema === 'users') {
+            var fn = randChoice(FIRST_NAMES);
+            var ln = randChoice(LAST_NAMES);
+            records.push({
+              id: 1000 + i,
+              name: fn + ' ' + ln,
+              email: fn.toLowerCase() + '.' + ln.toLowerCase() + i + '@' + randChoice(DOMAINS),
+              phone: '+1-' + randInt(200, 999) + '-' + randInt(100, 999) + '-' + randInt(1000, 9999),
+              city: randChoice(CITIES),
+              role: i === 1 ? 'ADMIN' : randChoice(['USER', 'EDITOR', 'VIEWER']),
+              isActive: Math.random() > 0.2
+            });
+          } else if (schema === 'products') {
+            records.push({
+              id: 'PROD-' + (2000 + i),
+              title: randChoice(PRODUCT_NAMES) + (i > 8 ? ' v' + (i % 5 + 1) : ''),
+              category: randChoice(CATEGORIES),
+              price: Number((randInt(15, 800) + 0.99).toFixed(2)),
+              stock: randInt(0, 150),
+              inStock: Math.random() > 0.15,
+              rating: Number((3.5 + Math.random() * 1.5).toFixed(1))
+            });
+          } else if (schema === 'orders') {
+            records.push({
+              orderId: 'ORD-' + (5000 + i),
+              userId: 1000 + randInt(1, 50),
+              status: randChoice(STATUSES),
+              itemCount: randInt(1, 8),
+              totalAmount: Number((randInt(20, 1500) + 0.50).toFixed(2)),
+              paymentMethod: randChoice(['CREDIT_CARD', 'PAYPAL', 'APPLE_PAY', 'STRIPE'])
+            });
+          }
+        }
+        return records;
+      }
+
+      function processMockData(format) {
+        var schemaEl = document.getElementById('mock-schema');
+        var countEl = document.getElementById('mock-count');
+        var outputEl = document.getElementById('mock-output');
+        var statusEl = document.getElementById('mock-status');
+        if (!schemaEl || !outputEl) return;
+
+        var schema = schemaEl.value;
+        var count = parseInt(countEl ? countEl.value : '5', 10) || 5;
+        var records = generateMockRecords(schema, count);
+
+        if (format === 'csv') {
+          if (records.length === 0) {
+            outputEl.value = '';
+          } else {
+            var keys = Object.keys(records[0]);
+            var lines = [keys.join(',')];
+            for (var r = 0; r < records.length; r++) {
+              var row = [];
+              for (var k = 0; k < keys.length; k++) {
+                var v = records[r][keys[k]];
+                if (typeof v === 'string' && (v.indexOf(',') !== -1 || v.indexOf('"') !== -1)) {
+                  row.push('"' + v.replace(/"/g, '""') + '"');
+                } else {
+                  row.push(String(v));
+                }
+              }
+              lines.push(row.join(','));
+            }
+            outputEl.value = lines.join('\\n');
+          }
+        } else {
+          outputEl.value = JSON.stringify(records, null, 2);
+        }
+
+        if (statusEl) {
+          statusEl.textContent = 'Generated ' + count + ' ' + schema + ' records (' + format.toUpperCase() + ')';
+          statusEl.className = 'status-msg success';
+        }
+      }
+      window.processMockData = processMockData;
+
+      // ==========================================
+      // Regex Tester & Explainer
+      // ==========================================
+      var regexPresets = {
+        email: { pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$', flags: '' },
+        url: { pattern: 'https?:\\\\/\\\\/(www\\\\.)?[-a-zA-Z0-9@:%._\\\\+~#=]{1,256}\\\\.[a-zA-Z0-9()]{1,6}\\\\b([-a-zA-Z0-9()@:%_\\\\+.~#?&//=]*)', flags: 'i' },
+        ipv4: { pattern: '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', flags: '' },
+        uuid: { pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', flags: 'i' },
+        isoDate: { pattern: '^\\\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\\\d|3[01])$', flags: '' },
+        hexColor: { pattern: '^#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$', flags: '' },
+        strongPassword: { pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\\\d)(?=.*[@$!%*?&])[A-Za-z\\\\d@$!%*?&]{8,}$', flags: '' },
+        phoneUs: { pattern: '^\\\\+?\\\\d{1,3}?[-.\\\\s]?\\\\(?\\\\d{3}\\\\)?[-.\\\\s]?\\\\d{3}[-.\\\\s]?\\\\d{4}$', flags: '' }
+      };
+
+      function loadRegexPreset() {
+        var sel = document.getElementById('regex-preset-select');
+        if (!sel || !sel.value) return;
+        var p = regexPresets[sel.value];
+        if (p) {
+          var patEl = document.getElementById('regex-pattern');
+          var flagsEl = document.getElementById('regex-flags');
+          if (patEl) patEl.value = p.pattern;
+          if (flagsEl) flagsEl.value = p.flags;
+          processRegexTest();
+        }
+      }
+      window.loadRegexPreset = loadRegexPreset;
+
+      function processRegexTest() {
+        var patEl = document.getElementById('regex-pattern');
+        var flagsEl = document.getElementById('regex-flags');
+        var textEl = document.getElementById('regex-text');
+        var outputEl = document.getElementById('regex-output');
+        var statusEl = document.getElementById('regex-status');
+        if (!patEl || !outputEl) return;
+
+        var pattern = patEl.value.trim();
+        var flags = flagsEl ? flagsEl.value.trim() : '';
+        var testStr = textEl ? textEl.value : '';
+
+        if (!pattern) {
+          outputEl.innerHTML = '<div style="padding: 10px; color: var(--fg); opacity: 0.7;">Enter regex pattern above to evaluate...</div>';
+          if (statusEl) { statusEl.textContent = ''; statusEl.className = 'status-msg'; }
+          return;
+        }
+
+        try {
+          var rx = new RegExp(pattern, flags);
+          var matches = [];
+          if (flags.indexOf('g') !== -1) {
+            var m;
+            var lastIdx = -1;
+            while ((m = rx.exec(testStr)) !== null) {
+              if (rx.lastIndex === lastIdx) rx.lastIndex++;
+              lastIdx = rx.lastIndex;
+              matches.push({ match: m[0], index: m.index, groups: m.slice(1) });
+              if (rx.lastIndex >= testStr.length && m[0].length === 0) break;
+            }
+          } else {
+            var singleM = rx.exec(testStr);
+            if (singleM) {
+              matches.push({ match: singleM[0], index: singleM.index, groups: singleM.slice(1) });
+            }
+          }
+
+          if (matches.length === 0) {
+            outputEl.innerHTML = '<div style="padding: 10px; color: #eab308;">No match found for given pattern and input string.</div>';
+            if (statusEl) {
+              statusEl.textContent = '0 matches';
+              statusEl.className = 'status-msg';
+            }
+          } else {
+            var html = '';
+            for (var i = 0; i < matches.length; i++) {
+              var item = matches[i];
+              html += '<div style="padding: 6px 10px; border-bottom: 1px solid var(--border); font-family: monospace;">' +
+                      '<span style="color: #4ade80; font-weight: bold;">Match #' + (i + 1) + '</span> ' +
+                      '<span style="opacity: 0.7;">(index ' + item.index + '):</span> ' +
+                      '<strong>"' + escapeHtml(item.match) + '"</strong>';
+              if (item.groups && item.groups.length > 0) {
+                html += '<div style="padding-left: 16px; margin-top: 4px; opacity: 0.85; font-size: 11px;">' +
+                        item.groups.map(function(g, gi) {
+                          return '<span style="background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 3px; margin-right: 6px;">Group ' + (gi + 1) + ': "' + escapeHtml(g || '') + '"</span>';
+                        }).join('') +
+                        '</div>';
+              }
+              html += '</div>';
+            }
+            outputEl.innerHTML = html;
+            if (statusEl) {
+              statusEl.textContent = 'Found ' + matches.length + ' match(es)!';
+              statusEl.className = 'status-msg success';
+            }
+          }
+        } catch (err) {
+          outputEl.innerHTML = '<div style="padding: 10px; color: #ef4444;">Invalid Regular Expression: ' + escapeHtml(err.message) + '</div>';
+          if (statusEl) {
+            statusEl.textContent = 'Regex syntax error';
+            statusEl.className = 'status-msg error';
+          }
+        }
+      }
+      window.processRegexTest = processRegexTest;
+
+      // ==========================================
+      // HTTP Status Code & QA Reference
+      // ==========================================
+      var httpStatuses = [
+        { code: 200, phrase: 'OK', cat: '2xx', desc: 'Standard response for successful HTTP requests.', qa: 'Verify response body schema and assert accurate status code.' },
+        { code: 201, phrase: 'Created', cat: '2xx', desc: 'Resource created successfully.', qa: 'Verify Location header points to newly created resource URI.' },
+        { code: 204, phrase: 'No Content', cat: '2xx', desc: 'Request fulfilled, response body is intentionally empty.', qa: 'Assert response body is 0 bytes; verify DELETE/PUT succeeded in subsequent calls.' },
+        { code: 301, phrase: 'Moved Permanently', cat: '3xx', desc: 'Target resource assigned a new permanent URI.', qa: 'Verify Location header is present and client redirects automatically.' },
+        { code: 304, phrase: 'Not Modified', cat: '3xx', desc: 'Resource unchanged since version in ETag / If-Modified-Since.', qa: 'Verify caching flow; ensure body is completely omitted.' },
+        { code: 400, phrase: 'Bad Request', cat: '4xx', desc: 'Malformed syntax, invalid JSON, or missing required field.', qa: 'Submit invalid payloads; assert structured validation error responses.' },
+        { code: 401, phrase: 'Unauthorized', cat: '4xx', desc: 'Authentication required, missing, or invalid token.', qa: 'Send request with missing, expired, or tampered token; assert 401.' },
+        { code: 403, phrase: 'Forbidden', cat: '4xx', desc: 'Authenticated user lacks required role/permission.', qa: 'Attempt admin endpoint with standard user token; verify 403.' },
+        { code: 404, phrase: 'Not Found', cat: '4xx', desc: 'Requested endpoint or resource ID does not exist.', qa: 'Verify nonexistent ID returns clean error JSON without stack traces.' },
+        { code: 405, phrase: 'Method Not Allowed', cat: '4xx', desc: 'HTTP verb not supported by target resource.', qa: 'Send POST to GET-only URL; check Allow response header.' },
+        { code: 409, phrase: 'Conflict', cat: '4xx', desc: 'Conflict in current resource state (e.g. duplicate key).', qa: 'Test duplicate unique constraint insertion; verify idempotency.' },
+        { code: 422, phrase: 'Unprocessable Entity', cat: '4xx', desc: 'Syntactically correct request fails semantic domain validation.', qa: 'Submit negative price or invalid business values.' },
+        { code: 429, phrase: 'Too Many Requests', cat: '4xx', desc: 'Rate limit exceeded.', qa: 'Send burst requests exceeding threshold; assert Retry-After header.' },
+        { code: 500, phrase: 'Internal Server Error', cat: '5xx', desc: 'Unexpected server-side error condition.', qa: 'Ensure error logs capture stack trace but no sensitive details leak in API response.' },
+        { code: 502, phrase: 'Bad Gateway', cat: '5xx', desc: 'Proxy/Gateway received invalid response from upstream.', qa: 'Simulate downstream service downtime or timeout behind proxy.' },
+        { code: 503, phrase: 'Service Unavailable', cat: '5xx', desc: 'Server overloaded or down for maintenance.', qa: 'Assert Retry-After header; verify healthcheck endpoints reflect status.' },
+        { code: 504, phrase: 'Gateway Timeout', cat: '5xx', desc: 'Upstream server failed to respond in time.', qa: 'Verify timeout configurations between ingress/reverse proxy and internal microservice.' }
+      ];
+
+      function filterHttpStatuses() {
+        var searchEl = document.getElementById('http-search');
+        var catEl = document.getElementById('http-filter-cat');
+        var container = document.getElementById('http-cards');
+        if (!container) return;
+
+        var q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+        var cat = catEl ? catEl.value : 'ALL';
+
+        var filtered = httpStatuses.filter(function(item) {
+          var matchesCat = cat === 'ALL' || item.cat === cat;
+          var matchesQ = !q || 
+            String(item.code).indexOf(q) !== -1 || 
+            item.phrase.toLowerCase().indexOf(q) !== -1 || 
+            item.desc.toLowerCase().indexOf(q) !== -1 ||
+            item.qa.toLowerCase().indexOf(q) !== -1;
+          return matchesCat && matchesQ;
+        });
+
+        if (filtered.length === 0) {
+          container.innerHTML = '<div style="padding: 12px; color: #eab308;">No HTTP status code found matching your query.</div>';
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < filtered.length; i++) {
+          var s = filtered[i];
+          var badgeColor = s.cat === '2xx' ? '#22c55e' : s.cat === '3xx' ? '#3b82f6' : s.cat === '4xx' ? '#f59e0b' : '#ef4444';
+          html += '<div style="background: var(--input-bg); border: 1px solid var(--border); border-left: 4px solid ' + badgeColor + '; border-radius: 4px; padding: 10px 12px;">' +
+                  '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">' +
+                  '  <span style="font-weight: 600; font-size: 13px;">' + s.code + ' ' + escapeHtml(s.phrase) + '</span>' +
+                  '  <span style="font-size: 10px; background: ' + badgeColor + '; color: #fff; padding: 1px 6px; border-radius: 10px;">' + s.cat + '</span>' +
+                  '</div>' +
+                  '<div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">' + escapeHtml(s.desc) + '</div>' +
+                  '<div style="font-size: 11px; opacity: 0.75; font-style: italic;"><strong style="color: #60a5fa;">QA Test Tip:</strong> ' + escapeHtml(s.qa) + '</div>' +
+                  '</div>';
+        }
+        container.innerHTML = html;
+      }
+      window.filterHttpStatuses = filterHttpStatuses;
+
+      // Initial render of HTTP statuses
+      filterHttpStatuses();
     })();
   </script>
 </body>

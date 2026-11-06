@@ -46,7 +46,12 @@ import {
   yamlToProperties,
   propertiesToYaml,
   computeLineDiff,
-  computeNormalizedDiff
+  computeNormalizedDiff,
+  testRegex,
+  generateMockData,
+  generateMockRecords,
+  lookupHttpStatus,
+  REGEX_PRESETS
 } from '../utils/coreUtils';
 
 test('Base64 encoding and decoding', () => {
@@ -313,5 +318,67 @@ test('Line diff and normalized JSON/YAML diff computation', () => {
   assert.strictEqual(jsonDiff.hasDifferences, true);
   assert.ok(jsonDiff.lines.some(l => l.type === 'removed' && l.text.includes('"age": 30')));
   assert.ok(jsonDiff.lines.some(l => l.type === 'added' && l.text.includes('"age": 31')));
+});
+
+test('Mock Test Data Generator for QA & Dev (Users, Products, Orders in JSON and CSV)', () => {
+  const usersJson = generateMockData('users', 5, 'json');
+  const parsedUsers = JSON.parse(usersJson);
+  assert.strictEqual(parsedUsers.length, 5);
+  assert.ok(parsedUsers[0].email.includes('@'));
+  assert.ok(parsedUsers[0].name.length > 0);
+  assert.ok(parsedUsers[0].phone.startsWith('+1-'));
+
+  const productsCsv = generateMockData('products', 3, 'csv');
+  const csvLines = productsCsv.trim().split('\n');
+  assert.strictEqual(csvLines.length, 4); // 1 header + 3 rows
+  assert.ok(csvLines[0].includes('price'));
+  assert.ok(csvLines[0].includes('category'));
+
+  const orders = generateMockRecords('orders', 4);
+  assert.strictEqual(orders.length, 4);
+  assert.ok(orders[0].orderId.startsWith('ORD-'));
+  assert.ok(orders[0].totalAmount > 0);
+});
+
+test('Regex pattern tester with matches, indices, and captured groups', () => {
+  // Test email pattern preset
+  const emailPreset = REGEX_PRESETS.email;
+  const match1 = testRegex(emailPreset.pattern, emailPreset.flags, 'contact@techwasti.com');
+  assert.strictEqual(match1.count, 1);
+  assert.strictEqual(match1.matches[0].match, 'contact@techwasti.com');
+
+  const matchBad = testRegex(emailPreset.pattern, emailPreset.flags, 'invalid-email@');
+  assert.strictEqual(matchBad.count, 0);
+
+  // Global regex with capture groups
+  const text = 'Order 101 placed at $25.50 and Order 102 placed at $99.00';
+  const res = testRegex('Order (\\d+) placed at \\$([0-9.]+)', 'g', text);
+  assert.strictEqual(res.count, 2);
+  assert.strictEqual(res.matches[0].groups[0], '101');
+  assert.strictEqual(res.matches[0].groups[1], '25.50');
+  assert.strictEqual(res.matches[1].groups[0], '102');
+  assert.strictEqual(res.matches[1].groups[1], '99.00');
+
+  // Error handling for invalid regex
+  const invalid = testRegex('[a-z(', '', 'test');
+  assert.ok(invalid.error !== undefined);
+  assert.strictEqual(invalid.count, 0);
+});
+
+test('HTTP Status Code & API Header Reference lookup', () => {
+  const notFound = lookupHttpStatus(404);
+  assert.strictEqual(notFound.length, 1);
+  assert.strictEqual(notFound[0].phrase, 'Not Found');
+  assert.strictEqual(notFound[0].category, '4xx');
+  assert.ok(notFound[0].qaVerification.includes('nonexistent'));
+
+  const serverErrors = lookupHttpStatus('5xx');
+  assert.ok(serverErrors.length >= 4);
+  assert.ok(serverErrors.some(s => s.code === 500));
+  assert.ok(serverErrors.some(s => s.code === 502));
+
+  const searchGateway = lookupHttpStatus('gateway');
+  assert.ok(searchGateway.some(s => s.code === 502));
+  assert.ok(searchGateway.some(s => s.code === 504));
 });
 

@@ -44,7 +44,11 @@ import {
   yamlToJson,
   jsonToYaml,
   yamlToProperties,
-  propertiesToYaml
+  propertiesToYaml,
+  generateMockData,
+  testRegex,
+  lookupHttpStatus,
+  HTTP_STATUS_LIST
 } from './utils/coreUtils';
 
 /**
@@ -347,6 +351,98 @@ export function activate(context: vscode.ExtensionContext) {
         rightDoc.uri,
         'Original ⟷ Modified (DevUtils Diff)'
       );
+    }),
+    vscode.commands.registerCommand('devutils.generateMockData', async () => {
+      const schemaChoice = await vscode.window.showQuickPick(
+        [
+          { label: 'Users', description: 'User accounts with names, emails, phones, roles, cities' },
+          { label: 'Products', description: 'E-commerce items with prices, categories, SKUs, ratings' },
+          { label: 'Orders', description: 'Transactions with order IDs, amounts, payment methods, dates' }
+        ],
+        { placeHolder: 'Select Mock Data Schema' }
+      );
+      if (!schemaChoice) return;
+
+      const formatChoice = await vscode.window.showQuickPick(
+        ['JSON', 'CSV'],
+        { placeHolder: 'Select Output Format' }
+      );
+      if (!formatChoice) return;
+
+      const countInput = await vscode.window.showInputBox({
+        prompt: 'Enter number of records to generate (1 - 500):',
+        value: '5'
+      });
+      const count = parseInt(countInput || '5', 10) || 5;
+
+      const schemaKey = schemaChoice.label.toLowerCase() as 'users' | 'products' | 'orders';
+      const formatKey = formatChoice.toLowerCase() as 'json' | 'csv';
+      const output = generateMockData(schemaKey, count, formatKey);
+
+      const editor = vscode.window.activeTextEditor;
+      if (editor) {
+        editor.edit(editBuilder => {
+          editBuilder.insert(editor.selection.active, output);
+        });
+        vscode.window.showInformationMessage(`DevUtils: Generated ${count} mock ${schemaChoice.label} records!`);
+      } else {
+        const doc = await vscode.workspace.openTextDocument({
+          content: output,
+          language: formatKey === 'json' ? 'json' : 'plaintext'
+        });
+        await vscode.window.showTextDocument(doc);
+      }
+    }),
+    vscode.commands.registerCommand('devutils.testRegex', async () => {
+      const pattern = await vscode.window.showInputBox({
+        prompt: 'Enter Regular Expression pattern (without enclosing slashes):',
+        placeHolder: 'e.g. ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'
+      });
+      if (!pattern) return;
+
+      const flags = (await vscode.window.showInputBox({
+        prompt: 'Enter Regex Flags (e.g. g, i, m):',
+        value: 'g'
+      })) || '';
+
+      const testString = await vscode.window.showInputBox({
+        prompt: 'Enter test string to evaluate against regex:',
+        placeHolder: 'Sample text to test...'
+      });
+      if (testString === undefined) return;
+
+      const res = testRegex(pattern, flags, testString);
+      if (res.error) {
+        vscode.window.showErrorMessage(`DevUtils Regex Error: ${res.error}`);
+        return;
+      }
+
+      if (res.count === 0) {
+        vscode.window.showInformationMessage(`DevUtils: No match found for /${pattern}/${flags}`);
+      } else {
+        const preview = res.matches.map((m, i) => `#${i + 1}: "${m.match}" (idx: ${m.index})`).join(' | ');
+        vscode.window.showInformationMessage(`DevUtils: Found ${res.count} match(es): ${preview}`);
+      }
+    }),
+    vscode.commands.registerCommand('devutils.lookupHttpStatus', async () => {
+      const items = HTTP_STATUS_LIST.map(s => ({
+        label: `${s.code} ${s.phrase}`,
+        description: `[${s.category}] ${s.description}`,
+        detail: `QA Test Tip: ${s.qaVerification}`,
+        statusInfo: s
+      }));
+
+      const picked = await vscode.window.showQuickPick(items, {
+        placeHolder: 'Search HTTP status code (e.g. 200, 401, 404, 500, Unauthorized, Gateway)...',
+        matchOnDescription: true,
+        matchOnDetail: true
+      });
+
+      if (picked) {
+        vscode.window.showInformationMessage(
+          `HTTP ${picked.statusInfo.code} ${picked.statusInfo.phrase}: ${picked.statusInfo.description}`
+        );
+      }
     })
   );
 }

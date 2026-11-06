@@ -916,4 +916,254 @@ export function computeNormalizedDiff(text1: string, text2: string, mode: 'text'
   return computeLineDiff(normalized1, normalized2);
 }
 
+// ==========================================
+// DEVELOPER & QA / TESTER UTILITIES
+// ==========================================
+
+export interface RegexMatchResult {
+  match: string;
+  index: number;
+  groups: string[];
+}
+
+export interface RegexTestOutput {
+  matches: RegexMatchResult[];
+  count: number;
+  error?: string;
+}
+
+export const REGEX_PRESETS: Record<string, { label: string; pattern: string; flags: string; description: string }> = {
+  email: {
+    label: 'Email Address',
+    pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+    flags: '',
+    description: 'Validates standard email format'
+  },
+  url: {
+    label: 'URL (HTTP/HTTPS)',
+    pattern: 'https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)',
+    flags: 'i',
+    description: 'Matches valid web URLs with optional query strings'
+  },
+  ipv4: {
+    label: 'IPv4 Address',
+    pattern: '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$',
+    flags: '',
+    description: 'Matches valid IPv4 addresses (0.0.0.0 to 255.255.255.255)'
+  },
+  uuid: {
+    label: 'UUID / GUID v4',
+    pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+    flags: 'i',
+    description: 'Validates standard UUID v4 hexadecimal format'
+  },
+  isoDate: {
+    label: 'ISO Date (YYYY-MM-DD)',
+    pattern: '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$',
+    flags: '',
+    description: 'Matches YYYY-MM-DD date representation'
+  },
+  hexColor: {
+    label: 'Hex Color (#RGB / #RRGGBB)',
+    pattern: '^#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$',
+    flags: '',
+    description: 'Matches 3 or 6 digit hex color codes'
+  },
+  strongPassword: {
+    label: 'Strong Password Policy',
+    pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$',
+    flags: '',
+    description: 'At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character'
+  },
+  phoneUs: {
+    label: 'US/International Phone',
+    pattern: '^\\+?\\d{1,3}?[-.\\s]?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}$',
+    flags: '',
+    description: 'Matches US and standard international phone numbers'
+  }
+};
+
+/**
+ * Live regular expression tester with captured groups breakdown
+ */
+export function testRegex(pattern: string, flags: string, testString: string): RegexTestOutput {
+  try {
+    const rx = new RegExp(pattern, flags);
+    const matches: RegexMatchResult[] = [];
+
+    if (flags.includes('g')) {
+      let m: RegExpExecArray | null;
+      // Guard against zero-length infinite match loops
+      let lastIdx = -1;
+      while ((m = rx.exec(testString)) !== null) {
+        if (rx.lastIndex === lastIdx) {
+          rx.lastIndex++;
+        }
+        lastIdx = rx.lastIndex;
+        matches.push({
+          match: m[0],
+          index: m.index,
+          groups: m.slice(1)
+        });
+        if (!flags.includes('g') || rx.lastIndex >= testString.length && m[0].length === 0) {
+          break;
+        }
+      }
+    } else {
+      const m = rx.exec(testString);
+      if (m) {
+        matches.push({
+          match: m[0],
+          index: m.index,
+          groups: m.slice(1)
+        });
+      }
+    }
+
+    return {
+      matches,
+      count: matches.length
+    };
+  } catch (err: any) {
+    return {
+      matches: [],
+      count: 0,
+      error: err.message
+    };
+  }
+}
+
+/**
+ * Mock Test Data Generator (Users, Products, Orders) in JSON or CSV
+ */
+const FIRST_NAMES = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Sam', 'Chris', 'Pat', 'Riley', 'Avery', 'Devin', 'Logan'];
+const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+const CITIES = ['New York', 'San Francisco', 'London', 'Berlin', 'Tokyo', 'Sydney', 'Toronto', 'Singapore', 'Paris', 'Mumbai'];
+const DOMAINS = ['example.com', 'testmail.org', 'techwasti.com', 'company.io', 'qa-staging.net'];
+const PRODUCT_NAMES = ['Wireless Headphones', 'Mechanical Keyboard', '4K Monitor', 'USB-C Dock', 'Ergonomic Chair', 'Laptop Stand', 'Webcam HD', 'Smartwatch Pro'];
+const CATEGORIES = ['Electronics', 'Accessories', 'Office Furniture', 'Peripherals'];
+const STATUSES = ['PENDING', 'COMPLETED', 'SHIPPED', 'CANCELLED', 'REFUNDED'];
+
+function randomChoice<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+export function generateMockRecords(schemaType: 'users' | 'products' | 'orders', count: number): any[] {
+  const safeCount = Math.max(1, Math.min(count, 500));
+  const records: any[] = [];
+
+  for (let i = 1; i <= safeCount; i++) {
+    if (schemaType === 'users') {
+      const first = randomChoice(FIRST_NAMES);
+      const last = randomChoice(LAST_NAMES);
+      const domain = randomChoice(DOMAINS);
+      const email = `${first.toLowerCase()}.${last.toLowerCase()}${i}@${domain}`;
+      records.push({
+        id: 1000 + i,
+        name: `${first} ${last}`,
+        email,
+        phone: `+1-${randomInt(200, 999)}-${randomInt(100, 999)}-${randomInt(1000, 9999)}`,
+        city: randomChoice(CITIES),
+        isActive: Math.random() > 0.2,
+        role: i === 1 ? 'ADMIN' : randomChoice(['USER', 'EDITOR', 'VIEWER']),
+        createdAt: new Date(Date.now() - randomInt(1, 365) * 86400000).toISOString()
+      });
+    } else if (schemaType === 'products') {
+      const product = randomChoice(PRODUCT_NAMES);
+      records.push({
+        id: `PROD-${2000 + i}`,
+        title: `${product} ${i > 8 ? 'v' + (i % 5 + 1) : ''}`.trim(),
+        category: randomChoice(CATEGORIES),
+        price: Number((randomInt(15, 800) + 0.99).toFixed(2)),
+        stock: randomInt(0, 150),
+        inStock: Math.random() > 0.15,
+        rating: Number((3.5 + Math.random() * 1.5).toFixed(1)),
+        sku: `SKU-${randomInt(10000, 99999)}`
+      });
+    } else if (schemaType === 'orders') {
+      records.push({
+        orderId: `ORD-${5000 + i}`,
+        userId: 1000 + randomInt(1, 50),
+        status: randomChoice(STATUSES),
+        itemCount: randomInt(1, 8),
+        totalAmount: Number((randomInt(20, 1500) + 0.50).toFixed(2)),
+        currency: 'USD',
+        paymentMethod: randomChoice(['CREDIT_CARD', 'PAYPAL', 'APPLE_PAY', 'STRIPE']),
+        orderDate: new Date(Date.now() - randomInt(0, 60) * 86400000).toISOString()
+      });
+    }
+  }
+
+  return records;
+}
+
+export function generateMockData(schemaType: 'users' | 'products' | 'orders', count: number, format: 'json' | 'csv'): string {
+  const records = generateMockRecords(schemaType, count);
+  if (format === 'csv') {
+    return jsonToCsv(JSON.stringify(records));
+  }
+  return JSON.stringify(records, null, 2);
+}
+
+/**
+ * HTTP Status Reference & Header Guide for Dev & QA
+ */
+export interface HttpStatusInfo {
+  code: number;
+  phrase: string;
+  category: '1xx' | '2xx' | '3xx' | '4xx' | '5xx';
+  description: string;
+  qaVerification: string;
+}
+
+export const HTTP_STATUS_LIST: HttpStatusInfo[] = [
+  // 1xx
+  { code: 100, phrase: 'Continue', category: '1xx', description: 'Server received initial request headers; client should proceed to send request body.', qaVerification: 'Verify client sends large payload after receiving 100 Continue header.' },
+  { code: 101, phrase: 'Switching Protocols', category: '1xx', description: 'Server agrees to switch protocols (e.g. HTTP to WebSocket Upgrade).', qaVerification: 'Check WebSocket connection handshake 101 response and protocol upgrade headers.' },
+  
+  // 2xx
+  { code: 200, phrase: 'OK', category: '2xx', description: 'Standard response for successful HTTP requests.', qaVerification: 'Verify response body schema matches API documentation; assert accurate status and payload integrity.' },
+  { code: 201, phrase: 'Created', category: '2xx', description: 'Request succeeded and a new resource was created.', qaVerification: 'Verify Location header points to newly created resource URI; check resource can be retrieved via GET.' },
+  { code: 202, phrase: 'Accepted', category: '2xx', description: 'Request accepted for background asynchronous processing; processing is not complete.', qaVerification: 'Verify status polling URL or job ID in response payload.' },
+  { code: 204, phrase: 'No Content', category: '2xx', description: 'Server successfully fulfilled request and there is no additional content to return.', qaVerification: 'Assert response body is empty (0 bytes); verify DELETE or PUT succeeded in subsequent queries.' },
+
+  // 3xx
+  { code: 301, phrase: 'Moved Permanently', category: '3xx', description: 'Target resource has been assigned a new permanent URI.', qaVerification: 'Verify Location header is present and client/browser automatically redirects to target URL.' },
+  { code: 302, phrase: 'Found / Temporary Redirect', category: '3xx', description: 'Resource resides temporarily under a different URI.', qaVerification: 'Verify redirection target; ensure original request method is preserved or handled per client expectations.' },
+  { code: 304, phrase: 'Not Modified', category: '3xx', description: 'Resource has not been modified since version specified by request headers (If-None-Match or If-Modified-Since).', qaVerification: 'Verify ETag / Last-Modified caching flow; ensure response body is completely omitted.' },
+
+  // 4xx
+  { code: 400, phrase: 'Bad Request', category: '4xx', description: 'Server cannot process request due to client error (e.g., malformed syntax, invalid JSON, or missing required field).', qaVerification: 'Submit invalid payload, missing parameters, and malformed types; assert structured validation error messages.' },
+  { code: 401, phrase: 'Unauthorized', category: '4xx', description: 'Authentication is required and has failed or has not yet been provided.', qaVerification: 'Send request with missing, expired, or tampered Bearer token; assert WWW-Authenticate header.' },
+  { code: 403, phrase: 'Forbidden', category: '4xx', description: 'Server understood request, but refuses to authorize it (insufficient user permissions or role).', qaVerification: 'Attempt accessing admin endpoints with normal user credentials; verify 403 is returned rather than 401.' },
+  { code: 404, phrase: 'Not Found', category: '4xx', description: 'Server cannot find the requested resource.', qaVerification: 'Test queries with nonexistent IDs and invalid endpoints; verify clean error JSON without stack traces.' },
+  { code: 405, phrase: 'Method Not Allowed', category: '4xx', description: 'Request method is recognized by server but not supported by target resource.', qaVerification: 'Send POST to a GET-only endpoint; assert Allow response header lists supported methods.' },
+  { code: 409, phrase: 'Conflict', category: '4xx', description: 'Request could not be processed because of conflict in current state of resource (e.g. duplicate email/username).', qaVerification: 'Attempt creating resource with duplicate unique constraint; verify idempotency safeguards.' },
+  { code: 422, phrase: 'Unprocessable Entity', category: '4xx', description: 'Request syntax was correct, but server was unable to process contained instructions (semantic validation errors).', qaVerification: 'Send payload failing domain validations (e.g. negative prices, invalid email format).' },
+  { code: 429, phrase: 'Too Many Requests', category: '4xx', description: 'Client has sent too many requests in a given amount of time (rate limiting).', qaVerification: 'Fire burst requests exceeding rate limits; assert Retry-After header and clear rate limit error messages.' },
+
+  // 5xx
+  { code: 500, phrase: 'Internal Server Error', category: '5xx', description: 'Server encountered an unexpected condition preventing it from fulfilling request.', qaVerification: 'Verify backend logs capture stack trace; ensure no sensitive internals or database queries leak to client.' },
+  { code: 502, phrase: 'Bad Gateway', category: '5xx', description: 'Server acting as gateway or proxy received invalid response from inbound server.', qaVerification: 'Simulate downstream service downtime or timeout behind proxy/ingress.' },
+  { code: 503, phrase: 'Service Unavailable', category: '5xx', description: 'Server is currently unable to handle request due to temporary overloading or maintenance.', qaVerification: 'Assert Retry-After header; verify healthcheck endpoints reflect degraded status.' },
+  { code: 504, phrase: 'Gateway Timeout', category: '5xx', description: 'Server acting as gateway or proxy did not receive timely response from upstream server.', qaVerification: 'Verify timeout configurations between ingress/reverse proxy and internal microservices.' }
+];
+
+export function lookupHttpStatus(query: string | number): HttpStatusInfo[] {
+  const str = String(query).trim().toLowerCase();
+  if (!str) return HTTP_STATUS_LIST;
+
+  return HTTP_STATUS_LIST.filter(item => 
+    String(item.code).includes(str) ||
+    item.phrase.toLowerCase().includes(str) ||
+    item.category.toLowerCase().includes(str) ||
+    item.description.toLowerCase().includes(str)
+  );
+}
+
+
 

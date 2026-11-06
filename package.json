@@ -2,7 +2,7 @@
   "name": "dev-utils-vscode-plugin",
   "displayName": "DevUtils - Developer Utilities",
   "description": "All-in-one offline developer toolbox: Encoders, Formatters, Hash & UUID Generators, JWT Inspector, Case Converters, Line Tools and Webview Dashboard.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "TechwastiInfotech",
   "repository": {
     "type": "git",

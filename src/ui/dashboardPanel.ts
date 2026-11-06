@@ -86,6 +86,17 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .diff-view { margin-top: 16px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; font-family: var(--vscode-editor-font-family, monospace); font-size: 12px; }
+    .diff-row { display: flex; border-bottom: 1px solid rgba(128, 128, 128, 0.15); line-height: 20px; }
+    .diff-num { width: 45px; padding: 2px 8px; text-align: right; user-select: none; opacity: 0.5; background: rgba(0, 0, 0, 0.1); border-right: 1px solid var(--border); }
+    .diff-sign { width: 25px; text-align: center; font-weight: bold; }
+    .diff-content { flex: 1; padding: 2px 8px; white-space: pre-wrap; word-break: break-all; }
+    .diff-row.added { background: rgba(46, 160, 67, 0.15); }
+    .diff-row.added .diff-sign { color: #89d185; }
+    .diff-row.removed { background: rgba(248, 81, 73, 0.15); }
+    .diff-row.removed .diff-sign { color: #f48771; }
+    .diff-row.equal { background: transparent; }
   </style>
 </head>
 <body>
@@ -100,6 +111,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
   <div class="nav-tabs">
     <button class="tab-btn active" data-tab="base64" onclick="switchTab('base64')">Base64</button>
     <button class="tab-btn" data-tab="json" onclick="switchTab('json')">JSON Formatter</button>
+    <button class="tab-btn" data-tab="yaml" onclick="switchTab('yaml')">YAML & Properties</button>
+    <button class="tab-btn" data-tab="diff" onclick="switchTab('diff')">Diff Checker</button>
     <button class="tab-btn" data-tab="xml" onclick="switchTab('xml')">XML Formatter</button>
     <button class="tab-btn" data-tab="sql" onclick="switchTab('sql')">SQL Formatter</button>
     <button class="tab-btn" data-tab="csv" onclick="switchTab('csv')">CSV ⇄ JSON</button>
@@ -113,7 +126,6 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <button class="tab-btn" data-tab="lorem" onclick="switchTab('lorem')">Lorem Ipsum</button>
     <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Text Statistics</button>
     <button class="tab-btn" data-tab="curl" onclick="switchTab('curl')">cURL Converter</button>
-    <button class="tab-btn" data-tab="yaml" onclick="switchTab('yaml')">YAML & Properties</button>
     <button class="tab-btn" data-tab="ts" onclick="switchTab('ts')">JSON ➔ TS</button>
     <button class="tab-btn" data-tab="cron" onclick="switchTab('cron')">Cron Explainer</button>
   </div>
@@ -514,6 +526,36 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     </div>
   </div>
 
+  <!-- Difference Checker Panel -->
+  <div id="panel-diff" class="tool-panel">
+    <h3>Difference Checker (Text, JSON & YAML)</h3>
+    <div class="grid-2" style="margin-top: 12px;">
+      <div class="form-group">
+        <label>Original / Left (A)</label>
+        <textarea id="diff-input-a" rows="8" placeholder="Paste original content here..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Modified / Right (B)</label>
+        <textarea id="diff-input-b" rows="8" placeholder="Paste modified content here..."></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-diff-text" onclick="processDiff('text')">Compare Text Diff</button>
+      <button class="action-btn" id="btn-diff-json" onclick="processDiff('json')">Compare JSON Diff</button>
+      <button class="action-btn" id="btn-diff-yaml" onclick="processDiff('yaml')">Compare YAML Diff</button>
+      <button class="sec-btn" id="btn-diff-swap" onclick="swapDiffInputs()">Swap Left & Right</button>
+      <button class="sec-btn" id="btn-diff-sample" onclick="loadSample('diff')">Load Sample</button>
+      <button class="sec-btn" data-clear="diff-input-a,diff-input-b,diff-output,diff-status">Clear</button>
+    </div>
+    <div class="form-group output-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="margin-bottom: 0;">Diff Output</label>
+        <div id="diff-status" class="status-msg" style="margin-top: 0;"></div>
+      </div>
+      <div id="diff-output" class="diff-view" style="min-height: 120px; max-height: 400px; overflow-y: auto;"></div>
+    </div>
+  </div>
+
   <script nonce="${nonce}">
     (function() {
       // Tab switching
@@ -609,7 +651,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         curl: 'curl -X POST "https://api.techwasti.com/v1/auth" -H "Content-Type: application/json" -H "Authorization: Bearer mySecretToken" -d \\'{"username":"developer","remember":true}\\'',
         ts: '{"id":1001,"title":"DevUtils","public":true,"meta":{"views":1540,"rating":4.9},"tags":["vscode","utilities","offline"]}',
         cron: '*/15 9-17 * * 1-5',
-        yaml: 'server:\\n  port: 8080\\n  host: 0.0.0.0\\nspring:\\n  application:\\n    name: dev-utils-service\\n  datasource:\\n    url: jdbc:postgresql://localhost:5432/devdb\\n    username: postgres\\n    pool:\\n      max-size: 20\\n      active: true'
+        yaml: 'server:\\n  port: 8080\\n  host: 0.0.0.0\\nspring:\\n  application:\\n    name: dev-utils-service\\n  datasource:\\n    url: jdbc:postgresql://localhost:5432/devdb\\n    username: postgres\\n    pool:\\n      max-size: 20\\n      active: true',
+        diffA: '{\\n  "name": "dev-utils",\\n  "version": "0.3.1",\\n  "offline": true,\\n  "status": "beta"\\n}',
+        diffB: '{\\n  "name": "dev-utils",\\n  "version": "0.3.3",\\n  "offline": true,\\n  "status": "stable",\\n  "license": "MIT"\\n}'
       };
 
       function loadSample(tool) {
@@ -643,6 +687,14 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         } else if (tool === 'cron') {
           var el = document.getElementById('cron-input');
           if (el) { el.value = sampleData.cron; processCron(); }
+        } else if (tool === 'diff') {
+          var elA = document.getElementById('diff-input-a');
+          var elB = document.getElementById('diff-input-b');
+          if (elA && elB) {
+            elA.value = sampleData.diffA;
+            elB.value = sampleData.diffB;
+            processDiff('json');
+          }
         }
       }
       window.loadSample = loadSample;
@@ -1653,6 +1705,135 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         }
       }
       window.processYamlAction = processYamlAction;
+
+      // Difference Checker
+      function swapDiffInputs() {
+        var a = document.getElementById('diff-input-a');
+        var b = document.getElementById('diff-input-b');
+        if (a && b) {
+          var tmp = a.value;
+          a.value = b.value;
+          b.value = tmp;
+        }
+      }
+      window.swapDiffInputs = swapDiffInputs;
+
+      function escapeHtml(str) {
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function computeDiff(lines1, lines2) {
+        var n = lines1.length;
+        var m = lines2.length;
+        var dp = [];
+        for (var i = 0; i <= n; i++) {
+          dp[i] = new Int32Array(m + 1);
+        }
+        for (var i = 0; i < n; i++) {
+          for (var j = 0; j < m; j++) {
+            if (lines1[i] === lines2[j]) {
+              dp[i + 1][j + 1] = dp[i][j] + 1;
+            } else {
+              dp[i + 1][j + 1] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+            }
+          }
+        }
+        var diff = [];
+        var currI = n;
+        var currJ = m;
+        while (currI > 0 || currJ > 0) {
+          if (currI > 0 && currJ > 0 && lines1[currI - 1] === lines2[currJ - 1]) {
+            diff.unshift({ type: 'equal', text: lines1[currI - 1] });
+            currI--;
+            currJ--;
+          } else if (currJ > 0 && (currI === 0 || dp[currI][currJ - 1] >= dp[currI - 1][currJ])) {
+            diff.unshift({ type: 'added', text: lines2[currJ - 1] });
+            currJ--;
+          } else if (currI > 0 && (currJ === 0 || dp[currI][currJ - 1] < dp[currI - 1][currJ])) {
+            diff.unshift({ type: 'removed', text: lines1[currI - 1] });
+            currI--;
+          }
+        }
+        return diff;
+      }
+
+      function processDiff(mode) {
+        var inputA = document.getElementById('diff-input-a').value;
+        var inputB = document.getElementById('diff-input-b').value;
+        var outputEl = document.getElementById('diff-output');
+        var statusEl = document.getElementById('diff-status');
+        if (!outputEl) return;
+
+        try {
+          var textA = inputA;
+          var textB = inputB;
+
+          if (mode === 'json') {
+            if (textA.trim()) {
+              var objA = JSON.parse(textA);
+              textA = JSON.stringify(objA, null, 2);
+            }
+            if (textB.trim()) {
+              var objB = JSON.parse(textB);
+              textB = JSON.stringify(objB, null, 2);
+            }
+          } else if (mode === 'yaml') {
+            if (textA.trim()) {
+              var objA = textA.startsWith('{') || textA.startsWith('[') ? JSON.parse(textA) : parseYamlToJson(textA);
+              textA = objectToYaml(objA, 0);
+            }
+            if (textB.trim()) {
+              var objB = textB.startsWith('{') || textB.startsWith('[') ? JSON.parse(textB) : parseYamlToJson(textB);
+              textB = objectToYaml(objB, 0);
+            }
+          }
+
+          var linesA = textA.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n');
+          var linesB = textB.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n');
+
+          var diff = computeDiff(linesA, linesB);
+
+          var added = 0;
+          var removed = 0;
+          var unchanged = 0;
+          var html = '';
+
+          for (var k = 0; k < diff.length; k++) {
+            var item = diff[k];
+            var sign = ' ';
+            var cls = 'diff-row diff-equal';
+            if (item.type === 'added') {
+              sign = '+';
+              cls = 'diff-row diff-added';
+              added++;
+            } else if (item.type === 'removed') {
+              sign = '-';
+              cls = 'diff-row diff-removed';
+              removed++;
+            } else {
+              unchanged++;
+            }
+            html += '<div class="' + cls + '"><span class="diff-sign">' + sign + '</span><span class="diff-text">' + escapeHtml(item.text) + '</span></div>';
+          }
+
+          outputEl.innerHTML = html;
+          if (statusEl) {
+            statusEl.textContent = '+' + added + ' additions, -' + removed + ' deletions (' + (mode.toUpperCase()) + ')';
+            statusEl.className = 'status-msg success';
+          }
+        } catch (err) {
+          if (statusEl) {
+            statusEl.textContent = 'Error parsing ' + mode.toUpperCase() + ': ' + err.message;
+            statusEl.className = 'status-msg error';
+          }
+        }
+      }
+      window.processDiff = processDiff;
     })();
   </script>
 </body>

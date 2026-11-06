@@ -30,28 +30,34 @@ DevUtils brings common developer utilities directly into VS Code via both an **I
    - SQL Query Formatter (keywords uppercase, clauses formatted)
    - CSV ⇄ JSON bidirectional converter
 
-3. **Generators & Identifiers**
+3. **Difference Checker & Comparison**
+   - Text Diff Checker (line-by-line colored diff with addition/deletion counts)
+   - JSON Diff Checker (normalizes & formats before computing diffs)
+   - YAML Diff Checker (normalizes & formats before computing diffs)
+   - VS Code Native Diff Editor Integration (`DevUtils: Diff: Open VS Code Diff Viewer`)
+
+4. **Generators & Identifiers**
    - UUID / GUID Generator (RFC 4122 v4)
    - Nanoid Generator
    - Cryptographic Hash & Checksum (SHA-256, MD5, SHA-1)
    - Lorem Ipsum Generator (paragraphs & sentences)
 
-4. **Time & Date Tools**
+5. **Time & Date Tools**
    - Unix Epoch Timestamp <-> Human Readable Date / ISO 8601
    - Insert Current Epoch (seconds & milliseconds)
 
-5. **Text & Line Utilities**
+6. **Text & Line Utilities**
    - Case Converters (camelCase, snake_case, kebab-case, PascalCase, CONSTANT_CASE, Title Case)
    - Line Sorter (A-Z, Z-A)
    - Deduplicate Lines
    - Text Statistics (Characters, Words, Lines, Byte size)
 
-6. **API & Code Generation Tools**
+7. **API & Code Generation Tools**
    - cURL to Code Converter (JavaScript `fetch` & Python `requests`)
    - JSON to TypeScript Interface Generator
    - Cron Expression Explainer & Humanizer
 
-7. **Color & Web Helpers**
+8. **Color & Web Helpers**
    - HEX <-> RGB Converter with live color swatch preview
 
 ---
@@ -183,6 +189,10 @@ DevUtils is designed to work seamlessly without leaving your workflow:
 
 #### 10. Cron Expression Humanizer (`DevUtils: Cron: Humanize & Explain Expression`)
 * Turns `*/15 9-17 * * 1-5` into *"Every 15 minutes, between hours 9-17, Monday through Friday"*.
+
+#### 11. Difference Checker (Dashboard & Native Diff Viewer)
+* **Webview Dashboard Diff**: Compare two pieces of text, JSON documents, or YAML configurations directly side-by-side with color highlighting (`diff-added` and `diff-removed`) and summary addition/deletion statistics.
+* **Native VS Code Diff Viewer (`DevUtils: Diff: Open VS Code Diff Viewer`)**: Launches VS Code's rich native diff editor comparison tabs for two input texts with custom language modes (e.g. `json`, `yaml`, `javascript`, or plaintext).
 
 ---
 

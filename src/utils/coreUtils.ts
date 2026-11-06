@@ -808,4 +808,112 @@ export function propertiesToYaml(propertiesStr: string, indent: number = 2): str
   return yaml.dump(root, { indent });
 }
 
+/**
+ * 7. Difference Checker (Text, Normalized JSON, and Normalized YAML)
+ */
+export interface DiffLine {
+  type: 'equal' | 'added' | 'removed';
+  text: string;
+  leftLineNumber?: number;
+  rightLineNumber?: number;
+}
+
+export interface DiffResult {
+  lines: DiffLine[];
+  additions: number;
+  deletions: number;
+  unchanged: number;
+  hasDifferences: boolean;
+}
+
+export function computeLineDiff(text1: string, text2: string): DiffResult {
+  const lines1 = text1.split(/\r?\n/);
+  const lines2 = text2.split(/\r?\n/);
+  const m = lines1.length;
+  const n = lines2.length;
+
+  // Standard Myers / LCS Dynamic Programming
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      if (lines1[i] === lines2[j]) {
+        dp[i + 1][j + 1] = dp[i][j] + 1;
+      } else {
+        dp[i + 1][j + 1] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+      }
+    }
+  }
+
+  const diffLines: DiffLine[] = [];
+  let i = m;
+  let j = n;
+  let additions = 0;
+  let deletions = 0;
+  let unchanged = 0;
+
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && lines1[i - 1] === lines2[j - 1]) {
+      diffLines.push({
+        type: 'equal',
+        text: lines1[i - 1],
+        leftLineNumber: i,
+        rightLineNumber: j
+      });
+      unchanged++;
+      i--;
+      j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      diffLines.push({
+        type: 'added',
+        text: lines2[j - 1],
+        rightLineNumber: j
+      });
+      additions++;
+      j--;
+    } else if (i > 0 && (j === 0 || dp[i][j - 1] < dp[i - 1][j])) {
+      diffLines.push({
+        type: 'removed',
+        text: lines1[i - 1],
+        leftLineNumber: i
+      });
+      deletions++;
+      i--;
+    }
+  }
+
+  diffLines.reverse();
+
+  return {
+    lines: diffLines,
+    additions,
+    deletions,
+    unchanged,
+    hasDifferences: additions > 0 || deletions > 0
+  };
+}
+
+export function computeNormalizedDiff(text1: string, text2: string, mode: 'text' | 'json' | 'yaml'): DiffResult {
+  let normalized1 = text1;
+  let normalized2 = text2;
+
+  if (mode === 'json') {
+    try {
+      normalized1 = JSON.stringify(JSON.parse(text1), null, 2);
+    } catch {}
+    try {
+      normalized2 = JSON.stringify(JSON.parse(text2), null, 2);
+    } catch {}
+  } else if (mode === 'yaml') {
+    try {
+      normalized1 = yaml.dump(yaml.load(text1), { indent: 2 });
+    } catch {}
+    try {
+      normalized2 = yaml.dump(yaml.load(text2), { indent: 2 });
+    } catch {}
+  }
+
+  return computeLineDiff(normalized1, normalized2);
+}
+
 

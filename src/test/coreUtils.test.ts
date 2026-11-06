@@ -44,7 +44,9 @@ import {
   yamlToJson,
   jsonToYaml,
   yamlToProperties,
-  propertiesToYaml
+  propertiesToYaml,
+  computeLineDiff,
+  computeNormalizedDiff
 } from '../utils/coreUtils';
 
 test('Base64 encoding and decoding', () => {
@@ -294,5 +296,22 @@ database:
   const backToYaml = propertiesToYaml(props);
   assert.ok(backToYaml.includes('DevUtils'));
   assert.ok(backToYaml.includes('3306'));
+});
+
+test('Line diff and normalized JSON/YAML diff computation', () => {
+  const t1 = 'apple\nbanana\ncherry';
+  const t2 = 'apple\norange\ncherry\ndate';
+  const textDiff = computeLineDiff(t1, t2);
+  assert.strictEqual(textDiff.hasDifferences, true);
+  assert.strictEqual(textDiff.additions, 2);
+  assert.strictEqual(textDiff.deletions, 1);
+  assert.strictEqual(textDiff.unchanged, 2);
+
+  const j1 = '{"name":"Alice","age":30}';
+  const j2 = '{\n  "age": 31,\n  "name": "Alice"\n}';
+  const jsonDiff = computeNormalizedDiff(j1, j2, 'json');
+  assert.strictEqual(jsonDiff.hasDifferences, true);
+  assert.ok(jsonDiff.lines.some(l => l.type === 'removed' && l.text.includes('"age": 30')));
+  assert.ok(jsonDiff.lines.some(l => l.type === 'added' && l.text.includes('"age": 31')));
 });
 

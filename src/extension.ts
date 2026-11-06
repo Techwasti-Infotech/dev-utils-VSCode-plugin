@@ -316,6 +316,37 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     vscode.commands.registerCommand('devutils.propertiesToYaml', () => {
       transformSelection(propertiesToYaml, 'Properties to YAML Error');
+    }),
+    vscode.commands.registerCommand('devutils.openDiffViewer', async () => {
+      const editor = vscode.window.activeTextEditor;
+      let leftContent = editor ? editor.document.getText(editor.selection.isEmpty ? undefined : editor.selection) : '';
+      if (!leftContent) {
+        leftContent = (await vscode.window.showInputBox({
+          prompt: 'Enter Original Text / JSON / YAML (or leave blank to paste into editor):',
+          placeHolder: 'Original content...'
+        })) || '';
+      }
+
+      const rightContent = (await vscode.window.showInputBox({
+        prompt: 'Enter Modified Text / JSON / YAML to compare against:',
+        placeHolder: 'Modified content...'
+      })) || '';
+
+      const leftDoc = await vscode.workspace.openTextDocument({
+        content: leftContent,
+        language: editor?.document.languageId || 'plaintext'
+      });
+      const rightDoc = await vscode.workspace.openTextDocument({
+        content: rightContent,
+        language: editor?.document.languageId || 'plaintext'
+      });
+
+      await vscode.commands.executeCommand(
+        'vscode.diff',
+        leftDoc.uri,
+        rightDoc.uri,
+        'Original ⟷ Modified (DevUtils Diff)'
+      );
     })
   );
 }

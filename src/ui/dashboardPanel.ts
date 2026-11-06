@@ -518,9 +518,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         json: '{"app":"DevUtils","version":"0.2.1","offline":true,"features":["Base64","JSON","SQL","CSV","JWT"]}',
         xml: '<project name="DevUtils"><version>0.2.1</version><author><name>Techwasti</name></author></project>',
         sql: 'select u.id, u.name, u.email from users u inner join orders o on u.id = o.user_id where u.active = 1 and o.status = "completed" order by o.created_at desc limit 20',
-        csv: 'id,product,category,price,in_stock\n101,VS Code Extension,Developer Tools,0.00,true\n102,Offline Dashboard,Utilities,0.00,true\n103,Code Formatter,Productivity,0.00,true',
+        csv: 'id,product,category,price,in_stock\\n101,VS Code Extension,Developer Tools,0.00,true\\n102,Offline Dashboard,Utilities,0.00,true\\n103,Code Formatter,Productivity,0.00,true',
         jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlY2h3YXN0aSBEZXZlbG9wZXIiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE5OTk5OTk5OTl9.4S88qTfV2E1W2u0Jd6o2aB3r3k0v_6x7Y8z9A1b2C3D',
-        curl: 'curl -X POST "https://api.techwasti.com/v1/auth" -H "Content-Type: application/json" -H "Authorization: Bearer mySecretToken" -d \'{"username":"developer","remember":true}\'',
+        curl: 'curl -X POST "https://api.techwasti.com/v1/auth" -H "Content-Type: application/json" -H "Authorization: Bearer mySecretToken" -d \\'{"username":"developer","remember":true}\\'',
         ts: '{"id":1001,"title":"DevUtils","public":true,"meta":{"views":1540,"rating":4.9},"tags":["vscode","utilities","offline"]}',
         cron: '*/15 9-17 * * 1-5'
       };
@@ -700,17 +700,17 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         var formatted = '';
         var indent = 0;
         var tab = '  ';
-        var xml = val.replace(/(>)(<)(\/*)/g, '$1\r\n$2$3');
-        var lines = xml.split('\r\n');
+        var xml = val.replace(/(>)(<)(\\/*)/g, '$1\\n$2$3');
+        var lines = xml.split('\\n');
         for (var i = 0; i < lines.length; i++) {
           var line = lines[i].trim();
           if (!line) continue;
-          if (line.match(/^<\/\w/)) {
+          if (line.match(/^<\\/\\w/)) {
             if (indent > 0) indent--;
           }
-          formatted += tab.repeat(indent) + line + '\n';
-          if (line.match(/^<\w[^>]*[^\/]>/) && !line.match(/^<\w[^>]*\/>/)) {
-            if (!line.match(/<\/[^>]+>$/)) {
+          formatted += tab.repeat(indent) + line + '\\n';
+          if (line.match(/^<\\w[^>]*[^\\/]>/) && !line.match(/^<\\w[^>]*\\/>/)) {
+            if (!line.match(/<\\/[^>]+>$/)) {
               indent++;
             }
           }
@@ -780,7 +780,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         var status = document.getElementById('csv-status');
         var val = inputEl ? inputEl.value.trim() : '';
         try {
-          var lines = val.split(/\r?\n/).filter(Boolean);
+          var lines = val.split(/[\\r\\n]+/).filter(Boolean);
           if (lines.length === 0) {
             outputEl.value = '[]';
             return;
@@ -833,14 +833,14 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
               var v = item[h] !== undefined ? item[h] : '';
               if (typeof v === 'object' && v !== null) v = JSON.stringify(v);
               v = String(v);
-              if (v.indexOf(',') !== -1 || v.indexOf('"') !== -1 || v.indexOf('\n') !== -1) {
+              if (v.indexOf(',') !== -1 || v.indexOf('"') !== -1 || v.indexOf('\\n') !== -1) {
                 v = '"' + v.replace(/"/g, '""') + '"';
               }
               return v;
             });
             rows.push(row.join(','));
           }
-          outputEl.value = rows.join('\n');
+          outputEl.value = rows.join('\\n');
           status.textContent = 'Converted JSON to CSV successfully!';
           status.className = 'status-msg success';
         } catch (e) {
@@ -904,7 +904,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             }));
           }
         }
-        document.getElementById('uuid-output').value = arr.join('\n');
+        document.getElementById('uuid-output').value = arr.join('\\n');
       }
       window.generateUuidBatch = generateUuidBatch;
 
@@ -924,7 +924,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
           }
           arr.push(id);
         }
-        document.getElementById('uuid-output').value = arr.join('\n');
+        document.getElementById('uuid-output').value = arr.join('\\n');
       }
       window.generateNanoIdBatch = generateNanoIdBatch;
 
@@ -946,8 +946,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         if (num < 10000000000) num *= 1000;
         var d = new Date(num);
         document.getElementById('ts-output').value = 
-          'ISO 8601: ' + d.toISOString() + '\n' +
-          'UTC:      ' + d.toUTCString() + '\n' +
+          'ISO 8601: ' + d.toISOString() + '\\n' +
+          'UTC:      ' + d.toUTCString() + '\\n' +
           'Local:    ' + d.toString();
       }
       window.processTimestamp = processTimestamp;
@@ -968,15 +968,15 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
       // Line tools
       function processSortLines(reverse) {
         var input = document.getElementById('lines-input').value;
-        var lines = input.split(/\r?\n/).sort(function(a, b) { return a.localeCompare(b); });
+        var lines = input.split(/[\\r\\n]+/).sort(function(a, b) { return a.localeCompare(b); });
         if (reverse) lines.reverse();
-        document.getElementById('lines-output').value = lines.join('\n');
+        document.getElementById('lines-output').value = lines.join('\\n');
       }
       window.processSortLines = processSortLines;
 
       function processDeduplicateLines() {
         var input = document.getElementById('lines-input').value;
-        var lines = input.split(/\r?\n/);
+        var lines = input.split(/[\\r\\n]+/);
         var seen = {};
         var unique = [];
         for (var i = 0; i < lines.length; i++) {
@@ -985,7 +985,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             unique.push(lines[i]);
           }
         }
-        document.getElementById('lines-output').value = unique.join('\n');
+        document.getElementById('lines-output').value = unique.join('\\n');
       }
       window.processDeduplicateLines = processDeduplicateLines;
 
@@ -1090,7 +1090,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
           }
           result.push(sent.join(' '));
         }
-        document.getElementById('lorem-output').value = result.join('\n\n');
+        document.getElementById('lorem-output').value = result.join('\\n\\n');
       }
       window.generateLorem = generateLorem;
 
@@ -1109,8 +1109,8 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         statsInput.addEventListener('input', function(e) {
           var val = e.target.value;
           var chars = val.length;
-          var words = val.trim() ? val.trim().split(/\s+/).length : 0;
-          var lines = val ? val.split(/\r?\n/).length : 0;
+          var words = val.trim() ? val.trim().split(/\\s+/).length : 0;
+          var lines = val ? val.split(/[\\r\\n]+/).length : 0;
           var bytes = new TextEncoder().encode(val).length;
           document.getElementById('stats-chars').value = chars;
           document.getElementById('stats-words').value = words;
@@ -1127,15 +1127,15 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         var cmd = inputEl ? inputEl.value.trim() : '';
         if (!cmd) return;
         try {
-          var clean = cmd.replace(/\\\r?\n/g, ' ').trim();
+          var clean = cmd.replace(/\\\\[\\r\\n]+/g, ' ').trim();
           var method = 'GET';
           var url = '';
           var headers = {};
           var data = undefined;
 
-          var argRegex = /(-[A-Za-z]|--[A-Za-z-]+)(?:\s+(?:'([^']*)'|"([^"]*)"|([^\s]+)))?/g;
+          var argRegex = /(-[A-Za-z]|--[A-Za-z-]+)(?:\\s+(?:'([^']*)'|"([^"]*)"|([^\\s]+)))?/g;
           var match;
-          var urlMatch = clean.match(/(?:curl\s+)?(?:'([^']*)'|"([^"]*)"|(https?:\/\/[^\s'"]+))/i);
+          var urlMatch = clean.match(/(?:curl\\s+)?(?:'([^']*)'|"([^"]*)"|(https?:\\/\\/[^\\s'"]+))/i);
           if (urlMatch) url = urlMatch[1] || urlMatch[2] || urlMatch[3] || '';
 
           while ((match = argRegex.exec(clean)) !== null) {
@@ -1151,7 +1151,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             }
           }
           if (!url) {
-            var parts = clean.split(/\s+/);
+            var parts = clean.split(/\\s+/);
             for (var p = 0; p < parts.length; p++) {
               if (parts[p].startsWith('http://') || parts[p].startsWith('https://')) {
                 url = parts[p].replace(/['"]/g, '');
@@ -1166,11 +1166,11 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             if (Object.keys(headers).length > 0) opts.headers = headers;
             var bodyCode = '';
             if (data) {
-              try { bodyCode = ',\n  body: JSON.stringify(' + JSON.stringify(JSON.parse(data), null, 2) + ')'; }
-              catch(e) { bodyCode = ',\n  body: ' + JSON.stringify(data); }
+              try { bodyCode = ',\\n  body: JSON.stringify(' + JSON.stringify(JSON.parse(data), null, 2) + ')'; }
+              catch(e) { bodyCode = ',\\n  body: ' + JSON.stringify(data); }
             }
-            var hStr = Object.keys(headers).length > 0 ? ',\n  headers: ' + JSON.stringify(headers, null, 2) : '';
-            outputEl.value = '// JavaScript Fetch\nfetch("' + url + '", {\n  method: "' + method + '"' + hStr + bodyCode + '\n})\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));';
+            var hStr = Object.keys(headers).length > 0 ? ',\\n  headers: ' + JSON.stringify(headers, null, 2) : '';
+            outputEl.value = '// JavaScript Fetch\\nfetch("' + url + '", {\\n  method: "' + method + '"' + hStr + bodyCode + '\\n})\\n  .then(res => res.json())\\n  .then(data => console.log(data))\\n  .catch(err => console.error(err));';
           } else {
             var pyLines = ['import requests', ''];
             var pyArgs = ['"' + url + '"'];
@@ -1191,7 +1191,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             pyLines.push('response = requests.' + method.toLowerCase() + '(' + pyArgs.join(', ') + ')');
             pyLines.push('print(response.status_code)');
             pyLines.push('print(response.json())');
-            outputEl.value = pyLines.join('\n');
+            outputEl.value = pyLines.join('\\n');
           }
           status.textContent = 'Generated code successfully!';
           status.className = 'status-msg success';
@@ -1253,9 +1253,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             for (var p in ifaces[iName]) {
               out.push('  ' + p + ': ' + ifaces[iName][p] + ';');
             }
-            out.push('}\n');
+            out.push('}\\n');
           }
-          outputEl.value = out.join('\n').trim();
+          outputEl.value = out.join('\\n').trim();
           status.textContent = 'TypeScript interfaces generated!';
           status.className = 'status-msg success';
         } catch(err) {
@@ -1276,7 +1276,7 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         var val = inputEl ? inputEl.value.trim() : '';
         if (!val) return;
         try {
-          var parts = val.split(/\s+/);
+          var parts = val.split(/\\s+/);
           if (parts.length < 5) throw new Error('Requires 5 fields (min hour dom mon dow)');
           var min = parts[0], hour = parts[1], dom = parts[2], mon = parts[3], dow = parts[4];
           var monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

@@ -742,13 +742,13 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
             'INSERT INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE FROM', 'CREATE TABLE', 'DROP TABLE',
             'ALTER TABLE', 'UNION', 'UNION ALL'
           ];
-          var cleaned = sql.replace(/\s+/g, ' ').trim();
+          var cleaned = sql.replace(/\\s+/g, ' ').trim();
           for (var k = 0; k < keywords.length; k++) {
             var kw = keywords[k];
-            var regex = new RegExp('\\\\b' + kw + '\\\\b', 'gi');
+            var regex = new RegExp('\\b' + kw + '\\b', 'gi');
             cleaned = cleaned.replace(regex, '\\n' + kw);
           }
-          var lines = cleaned.split('\\n').map(function(l) { return l.trim(); }).filter(Boolean);
+          var lines = cleaned.split(/\\r?\\n/).map(function(l) { return l.trim(); }).filter(Boolean);
           var indent = 0;
           var formatted = [];
           for (var i = 0; i < lines.length; i++) {

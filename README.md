@@ -30,39 +30,44 @@ DevUtils brings common developer utilities directly into VS Code via both an **I
    - SQL Query Formatter (keywords uppercase, clauses formatted)
    - CSV ⇄ JSON bidirectional converter
 
-3. **Difference Checker & Comparison**
+3. **Data Manipulation & Transformation**
+   - JSON Flatten & Unflatten (hierarchical nested objects ⇄ single-level dotted keys)
+   - Delimiter Switcher (converts between CSV, TSV / Excel tab, Pipe `|`, and Semicolon `;`)
+   - JSON Query, Filter & Projection (supports condition filtering like `price > 50` and projections like `[*].name`)
+
+4. **Difference Checker & Comparison**
    - Text Diff Checker (line-by-line colored diff with addition/deletion counts)
    - JSON Diff Checker (normalizes & formats before computing diffs)
    - YAML Diff Checker (normalizes & formats before computing diffs)
    - VS Code Native Diff Editor Integration (`DevUtils: Diff: Open VS Code Diff Viewer`)
 
-4. **Generators & Identifiers**
+5. **Generators & Identifiers**
    - UUID / GUID Generator (RFC 4122 v4)
    - Nanoid Generator
    - Cryptographic Hash & Checksum (SHA-256, MD5, SHA-1)
    - Lorem Ipsum Generator (paragraphs & sentences)
 
-5. **Time & Date Tools**
+6. **Time & Date Tools**
    - Unix Epoch Timestamp <-> Human Readable Date / ISO 8601
    - Insert Current Epoch (seconds & milliseconds)
 
-6. **Text & Line Utilities**
+7. **Text & Line Utilities**
    - Case Converters (camelCase, snake_case, kebab-case, PascalCase, CONSTANT_CASE, Title Case)
    - Line Sorter (A-Z, Z-A)
    - Deduplicate Lines
    - Text Statistics (Characters, Words, Lines, Byte size)
 
-7. **API & Code Generation Tools**
+8. **API & Code Generation Tools**
    - cURL to Code Converter (JavaScript `fetch` & Python `requests`)
    - JSON to TypeScript Interface Generator
    - Cron Expression Explainer & Humanizer
 
-8. **QA & Tester Utilities**
+9. **QA & Tester Utilities**
    - Mock Test Data Generator (Users, Products, Orders in JSON or CSV)
    - Regular Expression Tester & Explainer with captured groups and pattern presets
    - HTTP Status Code & API Header Reference with QA verification test checklists
 
-9. **Color & Web Helpers**
+10. **Color & Web Helpers**
    - HEX <-> RGB Converter with live color swatch preview
 
 ---
@@ -212,6 +217,15 @@ DevUtils is designed to work seamlessly without leaving your workflow:
 
 #### 14. HTTP Status Code & API Header Reference (`DevUtils: QA: Lookup HTTP Status Code & Header`)
 * Instant lookup across 1xx, 2xx, 3xx, 4xx, and 5xx status codes with official RFC definitions and **QA Verification Tips** (e.g. what headers to assert, response body checks, and edge cases to test).
+
+#### 15. JSON Flatten & Unflatten (`DevUtils: Data: Flatten JSON` / `Unflatten JSON`)
+* Flatten deeply nested JSON into simple dotted keys (`"user.address.city": "Berlin"`), and reconstruct dotted keys back into nested JSON hierarchies.
+
+#### 16. Delimiter Switcher (`DevUtils: Data: Convert Delimiter`)
+* Convert tabular data between **Comma (CSV)**, **Tab (TSV / Excel)**, **Pipe (`|`)**, and **Semicolon (`;`)** with robust quote handling.
+
+#### 17. JSON Query, Filter & Projection (`DevUtils: Data: Query & Filter JSON`)
+* Query JSON objects or arrays with conditions (`price > 50`, `status == "COMPLETED"`) or property projections (`[*].name`).
 
 ---
 

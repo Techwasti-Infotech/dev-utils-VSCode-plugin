@@ -1,8 +1,8 @@
 {
   "name": "dev-utils-vscode-plugin",
   "displayName": "DevUtils - Developer Utilities",
-  "description": "All-in-one offline developer & QA toolbox: Mock Test Data Generator, Regex Tester, HTTP Reference, Difference Checker, YAML & Properties, Encoders, Formatters, Hash/UUID, and Webview Dashboard.",
-  "version": "0.3.4",
+  "description": "All-in-one offline developer, data & QA toolbox: JSON Flatten/Unflatten, Delimiter Switcher, JSON Query/Filter, Mock Data, Regex Tester, HTTP Reference, Diff Checker, YAML, Encoders, Formatters, and Dashboard.",
+  "version": "0.3.5",
   "publisher": "TechwastiInfotech",
   "repository": {
     "type": "git",
@@ -290,6 +290,26 @@
         "title": "QA: Lookup HTTP Status Code & Header",
         "category": "DevUtils",
         "icon": "$(globe)"
+      },
+      {
+        "command": "devutils.flattenJson",
+        "title": "Data: Flatten JSON (Dotted Keys)",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.unflattenJson",
+        "title": "Data: Unflatten JSON (Nested Object)",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.convertDelimiter",
+        "title": "Data: Convert Delimiter (CSV/TSV/Pipe/Semicolon)",
+        "category": "DevUtils"
+      },
+      {
+        "command": "devutils.queryJson",
+        "title": "Data: Query & Filter JSON (Path / Expressions)",
+        "category": "DevUtils"
       }
     ],
     "keybindings": [
@@ -497,6 +517,18 @@
         },
         {
           "command": "devutils.lookupHttpStatus"
+        },
+        {
+          "command": "devutils.flattenJson"
+        },
+        {
+          "command": "devutils.unflattenJson"
+        },
+        {
+          "command": "devutils.convertDelimiter"
+        },
+        {
+          "command": "devutils.queryJson"
         }
       ]
     },

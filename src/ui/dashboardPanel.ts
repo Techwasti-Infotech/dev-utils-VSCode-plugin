@@ -131,6 +131,9 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     <button class="tab-btn" data-tab="mockdata" onclick="switchTab('mockdata')">Mock Data (QA)</button>
     <button class="tab-btn" data-tab="regex" onclick="switchTab('regex')">Regex Tester</button>
     <button class="tab-btn" data-tab="http" onclick="switchTab('http')">HTTP Status & QA</button>
+    <button class="tab-btn" data-tab="flatten" onclick="switchTab('flatten')">JSON Flatten</button>
+    <button class="tab-btn" data-tab="delim" onclick="switchTab('delim')">Delimiter Switcher</button>
+    <button class="tab-btn" data-tab="jsonquery" onclick="switchTab('jsonquery')">JSON Query</button>
   </div>
 
   <!-- Base64 Panel -->
@@ -669,6 +672,97 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
     </div>
   </div>
 
+  <!-- JSON Flatten & Unflatten Panel -->
+  <div id="panel-flatten" class="tool-panel">
+    <h3>JSON Flatten & Unflatten (Dotted Keys)</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>Input JSON (Nested or Flattened)</label>
+      <textarea id="flatten-input" rows="8" placeholder='{"user": {"name": "Alice", "address": {"city": "Berlin"}}}'></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-flatten-do" onclick="processFlatten(true)">Flatten to Dotted Keys</button>
+      <button class="action-btn" id="btn-unflatten-do" onclick="processFlatten(false)">Unflatten to Nested Object</button>
+      <button class="sec-btn" id="btn-flatten-sample" onclick="loadSample('flatten')">Load Sample</button>
+      <button class="sec-btn" data-copy="flatten-output" onclick="copyOutput('flatten-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="flatten-input,flatten-output,flatten-status">Clear</button>
+    </div>
+    <div class="form-group output-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="margin-bottom: 0;">Output</label>
+        <div id="flatten-status" class="status-msg" style="margin-top: 0;"></div>
+      </div>
+      <textarea id="flatten-output" rows="8" readonly></textarea>
+    </div>
+  </div>
+
+  <!-- Delimiter Switcher Panel -->
+  <div id="panel-delim" class="tool-panel">
+    <h3>Delimiter Switcher (CSV ⇄ TSV ⇄ Pipe ⇄ Semicolon)</h3>
+    <div class="grid-2" style="margin-top: 12px;">
+      <div class="form-group">
+        <label>Source Delimiter (From)</label>
+        <select id="delim-from" style="width: 100%; background: var(--input-bg); color: var(--input-fg); border: 1px solid var(--border); border-radius: 4px; padding: 10px;">
+          <option value="," selected>Comma (,)</option>
+          <option value="\t">Tab (\t / TSV / Excel)</option>
+          <option value="|">Pipe (|)</option>
+          <option value=";">Semicolon (;)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Target Delimiter (To)</label>
+        <select id="delim-to" style="width: 100%; background: var(--input-bg); color: var(--input-fg); border: 1px solid var(--border); border-radius: 4px; padding: 10px;">
+          <option value=",">Comma (,)</option>
+          <option value="\t" selected>Tab (\t / TSV / Excel)</option>
+          <option value="|">Pipe (|)</option>
+          <option value=";">Semicolon (;)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tabular Content</label>
+      <textarea id="delim-input" rows="7" placeholder="id,product,category,price&#10;101,Keyboard,Electronics,49.99"></textarea>
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-delim-convert" onclick="processConvertDelimiter()">Convert Delimiter</button>
+      <button class="sec-btn" id="btn-delim-sample" onclick="loadSample('delim')">Load Sample</button>
+      <button class="sec-btn" data-copy="delim-output" onclick="copyOutput('delim-output')">Copy Output</button>
+      <button class="sec-btn" data-clear="delim-input,delim-output,delim-status">Clear</button>
+    </div>
+    <div class="form-group output-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="margin-bottom: 0;">Converted Tabular Output</label>
+        <div id="delim-status" class="status-msg" style="margin-top: 0;"></div>
+      </div>
+      <textarea id="delim-output" rows="7" readonly></textarea>
+    </div>
+  </div>
+
+  <!-- JSON Query Panel -->
+  <div id="panel-jsonquery" class="tool-panel">
+    <h3>JSON Query, Filter & Projection</h3>
+    <div class="form-group" style="margin-top: 12px;">
+      <label>JSON Data (Object or Array)</label>
+      <textarea id="query-input" rows="7" placeholder='[{"id": 1, "name": "Alpha", "price": 40}, {"id": 2, "name": "Beta", "price": 95}]'></textarea>
+    </div>
+    <div class="form-group">
+      <label>Query Expression (e.g. price > 50, status == "COMPLETED", [*].name, or user.profile)</label>
+      <input type="text" id="query-expr" placeholder='price > 50' onkeydown="if(event.key==='Enter')processQueryJson()" />
+    </div>
+    <div class="actions">
+      <button class="action-btn" id="btn-query-run" onclick="processQueryJson()">Execute Query</button>
+      <button class="sec-btn" id="btn-query-sample" onclick="loadSample('jsonquery')">Load Sample</button>
+      <button class="sec-btn" data-copy="query-output" onclick="copyOutput('query-output')">Copy Result</button>
+      <button class="sec-btn" data-clear="query-input,query-expr,query-output,query-status">Clear</button>
+    </div>
+    <div class="form-group output-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="margin-bottom: 0;">Query Result</label>
+        <div id="query-status" class="status-msg" style="margin-top: 0;"></div>
+      </div>
+      <textarea id="query-output" rows="8" readonly></textarea>
+    </div>
+  </div>
+
   <script nonce="${nonce}">
     (function() {
       // Tab switching
@@ -769,7 +863,11 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
         diffB: '{\\n  "name": "dev-utils",\\n  "version": "0.3.3",\\n  "offline": true,\\n  "status": "stable",\\n  "license": "MIT"\\n}',
         regexPattern: '([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
         regexFlags: 'g',
-        regexText: 'Contact support at help@techwasti.com or billing@example.org for assistance.'
+        regexText: 'Contact support at help@techwasti.com or billing@example.org for assistance.',
+        flatten: '{\\n  "company": "Techwasti",\\n  "location": {\\n    "country": "India",\\n    "city": "Pune"\\n  },\\n  "projects": [\\n    {"name": "DevUtils", "platform": "VS Code"},\\n    {"name": "Agentic", "platform": "AI"}\\n  ]\\n}',
+        delim: 'id\\tproduct\\tcategory\\tprice\\n101\\tMechanical Keyboard\\tHardware\\t79.99\\n102\\tUltraWide Monitor\\tHardware\\t299.99\\n103\\tUSB-C Hub\\tAccessories\\t24.50',
+        queryJson: '[\\n  {"id": 1, "product": "Headphones", "category": "Audio", "price": 45, "inStock": true},\\n  {"id": 2, "product": "Webcam HD", "category": "Video", "price": 85, "inStock": true},\\n  {"id": 3, "product": "Desk Mat", "category": "Office", "price": 18, "inStock": false}\\n]',
+        queryExpr: 'price > 20'
       };
 
       function loadSample(tool) {
@@ -825,6 +923,30 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
           if (flagsEl) flagsEl.value = sampleData.regexFlags;
           if (textEl) textEl.value = sampleData.regexText;
           processRegexTest();
+        } else if (tool === 'flatten') {
+          var flatEl = document.getElementById('flatten-input');
+          if (flatEl) {
+            flatEl.value = sampleData.flatten;
+            processFlatten(true);
+          }
+        } else if (tool === 'delim') {
+          var delimIn = document.getElementById('delim-input');
+          var delimFrom = document.getElementById('delim-from');
+          var delimTo = document.getElementById('delim-to');
+          if (delimIn && delimFrom && delimTo) {
+            delimFrom.value = '\\t';
+            delimTo.value = ',';
+            delimIn.value = sampleData.delim;
+            processConvertDelimiter();
+          }
+        } else if (tool === 'jsonquery') {
+          var qIn = document.getElementById('query-input');
+          var qEx = document.getElementById('query-expr');
+          if (qIn && qEx) {
+            qIn.value = sampleData.queryJson;
+            qEx.value = sampleData.queryExpr;
+            processQueryJson();
+          }
         }
       }
       window.loadSample = loadSample;
@@ -2234,6 +2356,249 @@ export function getWebviewContent(cspSource: string, nonce: string): string {
 
       // Initial render of HTTP statuses
       filterHttpStatuses();
+
+      // ==========================================
+      // JSON Flatten & Unflatten
+      // ==========================================
+      function processFlatten(isFlatten) {
+        var inputEl = document.getElementById('flatten-input');
+        var outputEl = document.getElementById('flatten-output');
+        var statusEl = document.getElementById('flatten-status');
+        if (!inputEl || !outputEl) return;
+        var val = inputEl.value.trim();
+        if (!val) return;
+
+        try {
+          var parsed = JSON.parse(val);
+          if (isFlatten) {
+            var flatResult = {};
+            function recurse(cur, prop) {
+              if (Object(cur) !== cur) {
+                flatResult[prop] = cur;
+              } else if (Array.isArray(cur)) {
+                if (cur.length === 0) {
+                  flatResult[prop] = [];
+                } else {
+                  for (var i = 0; i < cur.length; i++) {
+                    recurse(cur[i], prop ? prop + '.' + i : String(i));
+                  }
+                }
+              } else {
+                var isEmpty = true;
+                for (var p in cur) {
+                  isEmpty = false;
+                  recurse(cur[p], prop ? prop + '.' + p : p);
+                }
+                if (isEmpty && prop) flatResult[prop] = {};
+              }
+            }
+            recurse(parsed, '');
+            outputEl.value = JSON.stringify(flatResult, null, 2);
+            if (statusEl) {
+              statusEl.textContent = 'Flattened into ' + Object.keys(flatResult).length + ' dotted keys!';
+              statusEl.className = 'status-msg success';
+            }
+          } else {
+            var unflatResult = {};
+            for (var flatKey in parsed) {
+              var v = parsed[flatKey];
+              var keys = flatKey.split('.');
+              var curObj = unflatResult;
+              for (var k = 0; k < keys.length; k++) {
+                var keyName = keys[k];
+                var isNextNum = k < keys.length - 1 && /^\\d+$/.test(keys[k + 1]);
+                if (k === keys.length - 1) {
+                  curObj[keyName] = v;
+                } else {
+                  if (!curObj[keyName]) {
+                    curObj[keyName] = isNextNum ? [] : {};
+                  }
+                  curObj = curObj[keyName];
+                }
+              }
+            }
+            outputEl.value = JSON.stringify(unflatResult, null, 2);
+            if (statusEl) {
+              statusEl.textContent = 'Unflattened to nested JSON object!';
+              statusEl.className = 'status-msg success';
+            }
+          }
+        } catch (err) {
+          if (statusEl) {
+            statusEl.textContent = 'JSON Error: ' + err.message;
+            statusEl.className = 'status-msg error';
+          }
+        }
+      }
+      window.processFlatten = processFlatten;
+
+      // ==========================================
+      // Delimiter Switcher
+      // ==========================================
+      function processConvertDelimiter() {
+        var inputEl = document.getElementById('delim-input');
+        var fromEl = document.getElementById('delim-from');
+        var toEl = document.getElementById('delim-to');
+        var outputEl = document.getElementById('delim-output');
+        var statusEl = document.getElementById('delim-status');
+        if (!inputEl || !outputEl) return;
+
+        var text = inputEl.value;
+        if (!text.trim()) return;
+
+        var fromD = fromEl ? fromEl.value : ',';
+        var toD = toEl ? toEl.value : '\\t';
+
+        function parseRow(line, delim) {
+          var values = [];
+          var cur = '';
+          var inQuotes = false;
+          for (var i = 0; i < line.length; i++) {
+            var ch = line[i];
+            if (ch === '"') {
+              if (inQuotes && line[i + 1] === '"') {
+                cur += '"';
+                i++;
+              } else {
+                inQuotes = !inQuotes;
+              }
+            } else if (ch === delim && !inQuotes) {
+              values.push(cur);
+              cur = '';
+            } else {
+              cur += ch;
+            }
+          }
+          values.push(cur);
+          return values;
+        }
+
+        var lines = text.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n');
+        var outLines = [];
+        for (var l = 0; l < lines.length; l++) {
+          if (!lines[l].trim()) continue;
+          var fields = parseRow(lines[l], fromD);
+          var row = [];
+          for (var f = 0; f < fields.length; f++) {
+            var field = fields[f];
+            if (field.indexOf(toD) !== -1 || field.indexOf('"') !== -1 || field.indexOf('\\n') !== -1) {
+              row.push('"' + field.replace(/"/g, '""') + '"');
+            } else {
+              row.push(field);
+            }
+          }
+          outLines.push(row.join(toD));
+        }
+
+        outputEl.value = outLines.join('\\n');
+        if (statusEl) {
+          statusEl.textContent = 'Converted ' + outLines.length + ' rows!';
+          statusEl.className = 'status-msg success';
+        }
+      }
+      window.processConvertDelimiter = processConvertDelimiter;
+
+      // ==========================================
+      // JSON Query, Filter & Projection
+      // ==========================================
+      function processQueryJson() {
+        var inputEl = document.getElementById('query-input');
+        var exprEl = document.getElementById('query-expr');
+        var outputEl = document.getElementById('query-output');
+        var statusEl = document.getElementById('query-status');
+        if (!inputEl || !outputEl) return;
+
+        var jsonStr = inputEl.value.trim();
+        var expr = exprEl ? exprEl.value.trim() : '';
+        if (!jsonStr) return;
+
+        try {
+          var data = JSON.parse(jsonStr);
+          if (!expr || expr === '.' || expr === '$') {
+            outputEl.value = JSON.stringify(data, null, 2);
+            if (statusEl) { statusEl.textContent = 'Displaying full payload'; statusEl.className = 'status-msg success'; }
+            return;
+          }
+
+          // Condition filter: price > 50 or status == "COMPLETED"
+          var condMatch = expr.match(/^(?:\\[\\?\\s*)?([a-zA-Z0-9_.]+)\\s*(==|!=|>=|<=|>|<)\\s*(.+?)(?:\\s*\\])?$/);
+          if (condMatch && Array.isArray(data)) {
+            var prop = condMatch[1];
+            var op = condMatch[2];
+            var rawVal = condMatch[3].trim();
+            var expectedVal = rawVal;
+            if (rawVal.startsWith('"') && rawVal.endsWith('"')) {
+              expectedVal = rawVal.slice(1, -1);
+            } else if (rawVal === 'true') {
+              expectedVal = true;
+            } else if (rawVal === 'false') {
+              expectedVal = false;
+            } else if (!isNaN(Number(rawVal))) {
+              expectedVal = Number(rawVal);
+            }
+
+            var filtered = data.filter(function(item) {
+              var val = prop.split('.').reduce(function(acc, part) { return acc && acc[part]; }, item);
+              if (op === '==') return val === expectedVal;
+              if (op === '!=') return val !== expectedVal;
+              if (op === '>') return Number(val) > Number(expectedVal);
+              if (op === '>=') return Number(val) >= Number(expectedVal);
+              if (op === '<') return Number(val) < Number(expectedVal);
+              if (op === '<=') return Number(val) <= Number(expectedVal);
+              return false;
+            });
+
+            outputEl.value = JSON.stringify(filtered, null, 2);
+            if (statusEl) {
+              statusEl.textContent = 'Matched ' + filtered.length + ' item(s)';
+              statusEl.className = 'status-msg success';
+            }
+            return;
+          }
+
+          // Projection: [*].name or items[*].id
+          var projMatch = expr.match(/^([a-zA-Z0-9_.]*)\\[\\*\\](?:\\.([a-zA-Z0-9_.]+))?$/);
+          if (projMatch) {
+            var base = projMatch[1];
+            var target = projMatch[2];
+            var arr = data;
+            if (base) {
+              arr = base.split('.').reduce(function(acc, part) { return acc && acc[part]; }, data);
+            }
+            if (Array.isArray(arr)) {
+              var projected = arr.map(function(item) {
+                return target ? target.split('.').reduce(function(acc, part) { return acc && acc[part]; }, item) : item;
+              });
+              outputEl.value = JSON.stringify(projected, null, 2);
+              if (statusEl) {
+                statusEl.textContent = 'Projected ' + projected.length + ' item(s)';
+                statusEl.className = 'status-msg success';
+              }
+              return;
+            }
+          }
+
+          // Dotted path: user.name or items[0]
+          var path = expr.replace(/\\[(\\d+)\\]/g, '.$1').replace(/^\\./, '');
+          var parts = path.split('.');
+          var cur = data;
+          for (var p = 0; p < parts.length; p++) {
+            if (cur === undefined || cur === null) break;
+            cur = cur[parts[p]];
+          }
+          outputEl.value = JSON.stringify(cur !== undefined ? cur : null, null, 2);
+          if (statusEl) {
+            statusEl.textContent = 'Path query completed!';
+            statusEl.className = 'status-msg success';
+          }
+        } catch (err) {
+          if (statusEl) {
+            statusEl.textContent = 'Query Error: ' + err.message;
+            statusEl.className = 'status-msg error';
+          }
+        }
+      }
+      window.processQueryJson = processQueryJson;
     })();
   </script>
 </body>

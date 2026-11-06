@@ -1165,5 +1165,198 @@ export function lookupHttpStatus(query: string | number): HttpStatusInfo[] {
   );
 }
 
+// ==========================================
+// ADVANCED DATA UTILITIES
+// ==========================================
+
+/**
+ * Flattens a nested JSON object into single-level dotted keys.
+ * e.g. {"user": {"name": "Alice", "skills": ["JS"]}} -> {"user.name": "Alice", "user.skills.0": "JS"}
+ */
+export function flattenJson(jsonInput: string, delimiter: string = '.'): string {
+  const parsed = JSON.parse(jsonInput);
+  const result: Record<string, any> = {};
+
+  function recurse(cur: any, prop: string) {
+    if (Object(cur) !== cur) {
+      result[prop] = cur;
+    } else if (Array.isArray(cur)) {
+      if (cur.length === 0) {
+        result[prop] = [];
+      } else {
+        for (let i = 0; i < cur.length; i++) {
+          recurse(cur[i], prop ? `${prop}${delimiter}${i}` : `${i}`);
+        }
+      }
+    } else {
+      let isEmpty = true;
+      for (const p in cur) {
+        isEmpty = false;
+        recurse(cur[p], prop ? `${prop}${delimiter}${p}` : p);
+      }
+      if (isEmpty && prop) {
+        result[prop] = {};
+      }
+    }
+  }
+
+  recurse(parsed, '');
+  return JSON.stringify(result, null, 2);
+}
+
+/**
+ * Unflattens a flattened object with dotted keys back into nested JSON.
+ */
+export function unflattenJson(jsonInput: string, delimiter: string = '.'): string {
+  const parsed = JSON.parse(jsonInput);
+  if (Object(parsed) !== parsed || Array.isArray(parsed)) {
+    return JSON.stringify(parsed, null, 2);
+  }
+
+  const result: any = {};
+
+  for (const flatKey of Object.keys(parsed)) {
+    const value = parsed[flatKey];
+    const keys = flatKey.split(delimiter);
+    let cur = result;
+
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const isNextNum = i < keys.length - 1 && /^\d+$/.test(keys[i + 1]);
+
+      if (i === keys.length - 1) {
+        cur[key] = value;
+      } else {
+        if (!cur[key]) {
+          cur[key] = isNextNum ? [] : {};
+        }
+        cur = cur[key];
+      }
+    }
+  }
+
+  return JSON.stringify(result, null, 2);
+}
+
+/**
+ * Converts tabular text from one delimiter to another (CSV, TSV, Pipe, Semicolon)
+ */
+export function convertDelimiter(content: string, fromDelimiter: string, toDelimiter: string): string {
+  if (!content.trim()) return '';
+
+  const parseRow = (line: string, delim: string): string[] => {
+    const values: string[] = [];
+    let cur = '';
+    let inQuotes = false;
+    let wasQuoted = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+          wasQuoted = true;
+        }
+      } else if (char === delim && !inQuotes) {
+        values.push(cur);
+        cur = '';
+        wasQuoted = false;
+      } else {
+        cur += char;
+      }
+    }
+    values.push(cur);
+    return values;
+  };
+
+  const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  const convertedLines = lines.map(line => {
+    if (!line.trim()) return '';
+    const fields = parseRow(line, fromDelimiter);
+    return fields.map(f => {
+      if (f.includes(toDelimiter) || f.includes('"') || f.includes('\n')) {
+        return `"${f.replace(/"/g, '""')}"`;
+      }
+      return f;
+    }).join(toDelimiter);
+  });
+
+  return convertedLines.join('\n');
+}
+
+/**
+ * Filter, extract and query JSON objects or arrays
+ * Supports path syntax (e.g. `user.profile`, `items[*].id`, `users[0].name`)
+ * and condition filtering (e.g. `price > 50`, `status == "COMPLETED"`, `isActive == true`)
+ */
+export function queryJson(jsonStr: string, queryExpr: string): string {
+  const data = JSON.parse(jsonStr);
+  const expr = queryExpr.trim();
+  if (!expr || expr === '.' || expr === '$') {
+    return JSON.stringify(data, null, 2);
+  }
+
+  // Check if expression is a comparison filter for an array: e.g. `[? price > 50]` or `price > 50`
+  const condMatch = expr.match(/^(?:\[\?\s*)?([a-zA-Z0-9_.]+)\s*(==|!=|>=|<=|>|<)\s*(.+?)(?:\s*\])?$/);
+  if (condMatch && Array.isArray(data)) {
+    const [, prop, op, rawVal] = condMatch;
+    let expectedVal: any = rawVal.trim();
+    if (expectedVal.startsWith('"') && expectedVal.endsWith('"')) {
+      expectedVal = expectedVal.slice(1, -1);
+    } else if (expectedVal === 'true') {
+      expectedVal = true;
+    } else if (expectedVal === 'false') {
+      expectedVal = false;
+    } else if (!isNaN(Number(expectedVal))) {
+      expectedVal = Number(expectedVal);
+    }
+
+    const filtered = data.filter(item => {
+      const val = prop.split('.').reduce((acc, part) => acc && acc[part], item);
+      if (op === '==') return val === expectedVal;
+      if (op === '!=') return val !== expectedVal;
+      if (op === '>') return Number(val) > Number(expectedVal);
+      if (op === '>=') return Number(val) >= Number(expectedVal);
+      if (op === '<') return Number(val) < Number(expectedVal);
+      if (op === '<=') return Number(val) <= Number(expectedVal);
+      return false;
+    });
+
+    return JSON.stringify(filtered, null, 2);
+  }
+
+  // Handle projection: e.g. `items[*].title` or `users[*].email`
+  const arrayProjMatch = expr.match(/^([a-zA-Z0-9_.]*)\[\*\](?:\.([a-zA-Z0-9_.]+))?$/);
+  if (arrayProjMatch) {
+    const [, basePath, targetProp] = arrayProjMatch;
+    let targetArr = data;
+    if (basePath) {
+      targetArr = basePath.split('.').reduce((acc, part) => acc && acc[part], data);
+    }
+    if (Array.isArray(targetArr)) {
+      if (targetProp) {
+        const projected = targetArr.map(item => targetProp.split('.').reduce((acc, part) => acc && acc[part], item));
+        return JSON.stringify(projected, null, 2);
+      }
+      return JSON.stringify(targetArr, null, 2);
+    }
+  }
+
+  // Regular path resolution: e.g. `user.address.city` or `items[0]`
+  const normalizedPath = expr.replace(/\[(\d+)\]/g, '.$1').replace(/^\./, '');
+  const segments = normalizedPath.split('.');
+  let current = data;
+
+  for (const seg of segments) {
+    if (current === undefined || current === null) break;
+    current = current[seg];
+  }
+
+  return JSON.stringify(current !== undefined ? current : null, null, 2);
+}
+
+
 
 

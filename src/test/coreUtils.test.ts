@@ -51,7 +51,11 @@ import {
   generateMockData,
   generateMockRecords,
   lookupHttpStatus,
-  REGEX_PRESETS
+  REGEX_PRESETS,
+  flattenJson,
+  unflattenJson,
+  convertDelimiter,
+  queryJson
 } from '../utils/coreUtils';
 
 test('Base64 encoding and decoding', () => {
@@ -381,4 +385,73 @@ test('HTTP Status Code & API Header Reference lookup', () => {
   assert.ok(searchGateway.some(s => s.code === 502));
   assert.ok(searchGateway.some(s => s.code === 504));
 });
+
+test('JSON Flatten and Unflatten (dotted keys)', () => {
+  const nested = {
+    user: {
+      profile: {
+        name: 'Techwasti',
+        age: 5
+      },
+      tags: ['vs-code', 'tools']
+    },
+    active: true
+  };
+
+  const flattened = flattenJson(JSON.stringify(nested));
+  const parsedFlat = JSON.parse(flattened);
+  assert.strictEqual(parsedFlat['user.profile.name'], 'Techwasti');
+  assert.strictEqual(parsedFlat['user.profile.age'], 5);
+  assert.strictEqual(parsedFlat['user.tags.0'], 'vs-code');
+  assert.strictEqual(parsedFlat['user.tags.1'], 'tools');
+  assert.strictEqual(parsedFlat['active'], true);
+
+  const unflattened = unflattenJson(flattened);
+  const parsedUnflat = JSON.parse(unflattened);
+  assert.deepStrictEqual(parsedUnflat, nested);
+});
+
+test('Tabular delimiter conversion between CSV, TSV, Pipe, and Semicolon', () => {
+  const csv = 'id,name,role\n1,"Techwasti, Infotech",Admin\n2,Developer,User';
+  
+  // Convert CSV to TSV (fields without tab don't need quotes in TSV)
+  const tsv = convertDelimiter(csv, ',', '\t');
+  assert.ok(tsv.includes('id\tname\trole'));
+  assert.ok(tsv.includes('1\tTechwasti, Infotech\tAdmin'));
+
+  // Convert CSV to Pipe
+  const pipe = convertDelimiter(csv, ',', '|');
+  assert.ok(pipe.includes('id|name|role'));
+  assert.ok(pipe.includes('1|Techwasti, Infotech|Admin'));
+
+  // Convert Pipe back to CSV
+  const backToCsv = convertDelimiter(pipe, '|', ',');
+  assert.ok(backToCsv.includes('1,"Techwasti, Infotech",Admin'));
+});
+
+test('JSON Query, Filter, and Projection', () => {
+  const dataset = [
+    { id: 1, name: 'Widget A', price: 25, status: 'PENDING' },
+    { id: 2, name: 'Widget B', price: 90, status: 'COMPLETED' },
+    { id: 3, name: 'Widget C', price: 150, status: 'COMPLETED' }
+  ];
+  const jsonStr = JSON.stringify(dataset);
+
+  // Filter comparison
+  const completedRes = JSON.parse(queryJson(jsonStr, 'status == "COMPLETED"'));
+  assert.strictEqual(completedRes.length, 2);
+  assert.strictEqual(completedRes[0].id, 2);
+
+  const priceRes = JSON.parse(queryJson(jsonStr, 'price > 50'));
+  assert.strictEqual(priceRes.length, 2);
+
+  // Array projection
+  const namesRes = JSON.parse(queryJson(jsonStr, '[*].name'));
+  assert.deepStrictEqual(namesRes, ['Widget A', 'Widget B', 'Widget C']);
+
+  // Direct path index
+  const firstItemName = JSON.parse(queryJson(jsonStr, '[0].name'));
+  assert.strictEqual(firstItemName, 'Widget A');
+});
+
 

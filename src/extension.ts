@@ -48,7 +48,11 @@ import {
   generateMockData,
   testRegex,
   lookupHttpStatus,
-  HTTP_STATUS_LIST
+  HTTP_STATUS_LIST,
+  flattenJson,
+  unflattenJson,
+  convertDelimiter,
+  queryJson
 } from './utils/coreUtils';
 
 /**
@@ -443,6 +447,46 @@ export function activate(context: vscode.ExtensionContext) {
           `HTTP ${picked.statusInfo.code} ${picked.statusInfo.phrase}: ${picked.statusInfo.description}`
         );
       }
+    }),
+    vscode.commands.registerCommand('devutils.flattenJson', () => {
+      transformSelection(text => flattenJson(text, '.'), 'Flatten JSON Error');
+    }),
+    vscode.commands.registerCommand('devutils.unflattenJson', () => {
+      transformSelection(text => unflattenJson(text, '.'), 'Unflatten JSON Error');
+    }),
+    vscode.commands.registerCommand('devutils.convertDelimiter', async () => {
+      const fromDelim = await vscode.window.showQuickPick(
+        [
+          { label: 'Comma (,)', value: ',' },
+          { label: 'Tab (\\t)', value: '\t' },
+          { label: 'Pipe (|)', value: '|' },
+          { label: 'Semicolon (;)', value: ';' }
+        ],
+        { placeHolder: 'Select Source Delimiter' }
+      );
+      if (!fromDelim) return;
+
+      const toDelim = await vscode.window.showQuickPick(
+        [
+          { label: 'Comma (,)', value: ',' },
+          { label: 'Tab (\\t)', value: '\t' },
+          { label: 'Pipe (|)', value: '|' },
+          { label: 'Semicolon (;)', value: ';' }
+        ],
+        { placeHolder: 'Select Target Delimiter' }
+      );
+      if (!toDelim) return;
+
+      transformSelection(text => convertDelimiter(text, fromDelim.value, toDelim.value), 'Delimiter Conversion Error');
+    }),
+    vscode.commands.registerCommand('devutils.queryJson', async () => {
+      const queryExpr = await vscode.window.showInputBox({
+        prompt: 'Enter JSON Query Expression (e.g. status == "COMPLETED", [*].name, or user.profile):',
+        placeHolder: 'e.g. price > 50'
+      });
+      if (queryExpr === undefined) return;
+
+      transformSelection(text => queryJson(text, queryExpr), 'JSON Query Error');
     })
   );
 }

@@ -42,7 +42,7 @@
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onCommand:devutils.openDashboard"
+    "onStartupFinished"
   ],
   "contributes": {
     "commands": [
@@ -285,10 +285,34 @@
           "command": "devutils.base64Decode"
         },
         {
+          "command": "devutils.urlEncode"
+        },
+        {
+          "command": "devutils.urlDecode"
+        },
+        {
+          "command": "devutils.htmlEncode"
+        },
+        {
+          "command": "devutils.htmlDecode"
+        },
+        {
+          "command": "devutils.hexEncode"
+        },
+        {
+          "command": "devutils.hexDecode"
+        },
+        {
           "command": "devutils.jsonFormat"
         },
         {
+          "command": "devutils.jsonMinify"
+        },
+        {
           "command": "devutils.xmlFormat"
+        },
+        {
+          "command": "devutils.xmlMinify"
         },
         {
           "command": "devutils.sqlFormat"
@@ -310,6 +334,36 @@
         },
         {
           "command": "devutils.generateLorem"
+        },
+        {
+          "command": "devutils.hashSha256"
+        },
+        {
+          "command": "devutils.hashMd5"
+        },
+        {
+          "command": "devutils.timestampToDate"
+        },
+        {
+          "command": "devutils.currentTimestamp"
+        },
+        {
+          "command": "devutils.caseCamel"
+        },
+        {
+          "command": "devutils.caseSnake"
+        },
+        {
+          "command": "devutils.caseKebab"
+        },
+        {
+          "command": "devutils.casePascal"
+        },
+        {
+          "command": "devutils.caseConstant"
+        },
+        {
+          "command": "devutils.caseTitle"
         },
         {
           "command": "devutils.sortLines"
